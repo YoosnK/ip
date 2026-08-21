@@ -1,11 +1,13 @@
 public class Nia {
+    static final java.util.Random RNG = new java.util.Random();
+
     static void printBar() {
         System.out.println("--------------------------------------------------");
     }
 
     // a function that given an array of strings, return one of them (each have equal probability)
-    static String randomLine(String[] lines) {
-        return lines[0];
+    static String pickRandomLine(String[] possibleLines) {
+        return possibleLines[RNG.nextInt(possibleLines.length)];
     }
 
     // triggers when program ends
@@ -20,8 +22,7 @@ public class Nia {
                 "I'm not much of a helper... Can I just slack off?",
                 "Fine, fine... I'll help."
         };
-        // randomly prints one of the line, not yet implemented
-        System.out.println();
+        System.out.println(pickRandomLine(possibleLines));
     }
 
     public static void main(String[] args) {
@@ -37,8 +38,7 @@ public class Nia {
         printBar();
         System.out.println(banner);
         System.out.println("Hi, my name's Nia.");
-        // prints one of the starting lines, using the random line function
-        System.out.println(startingLines[0]);
+        System.out.println(pickRandomLine(startingLines));
         printBar();
         printEnding();
     }
