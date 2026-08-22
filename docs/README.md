@@ -2,6 +2,8 @@
 
 // Update the title above to match the actual product name
 
+> **Note:** Commands are case-sensitive. For example, `list` will be recognized, but `List` or `LIST` will not.
+
 // Product screenshot goes here
 
 // Product intro goes here
