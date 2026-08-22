@@ -65,20 +65,52 @@ public class Nia {
         System.out.println("    " + pickRandomLine(startingLines));
         printIndentedBar();
 
+        String[] taskList = new String[100];
+        int taskCount = 0;
+
         // Actions Loop
         java.util.Set<String> exitCommands = java.util.Set.of("bye", "close", "exit", "quit");
         java.util.Scanner scanner = new java.util.Scanner(System.in);
         String command;
         while (true) {
             command = scanner.nextLine();
+
+            if (command.isEmpty()) {
+                continue;
+            }
+
             if (exitCommands.contains(command)) {
                 break;
             }
-            printIndentedBar();
-            System.out.println("    " + command);
-            printIndentedBar();
-        }
 
+            switch (command) {
+                case "list":
+                    printIndentedBar();
+                    for (int i = 0; i < taskList.length; i++) {
+                        if (taskList[i] == null || taskList[i].isEmpty()) {
+                            // Check if there is no commands logged yet
+                            if (i == 0) {
+                                System.out.println("    Nothing here..."); // Change to fit Nia's Personality
+                            }
+                            break;
+                        }
+                        System.out.printf("     %d. %s%n", i + 1, taskList[i]);
+                    }
+                    printIndentedBar();
+                    break;
+                default:
+                    printIndentedBar();
+                    // Prevents adding over 100 tasks
+                    if (taskCount < taskList.length) {
+                        taskList[taskCount++] = command;
+                        System.out.println("    added: " + command); // Change to fit Nia's Personality if is an improvement
+                    } else {
+                        System.out.println("    I can't remember all of that"); // Maybe change this line, or add some variant
+                    }
+                    printIndentedBar();
+                    break;
+            }
+        }
         printEnding();
     }
 }
