@@ -1,163 +1,116 @@
+/**
+ * Entry point for Nia, a CLI task-tracking assistant.
+ * Runs a read-parse-dispatch loop: each line of input is split into a command word
+ * and arguments, then routed to a handleXxx method that validates and executes it.
+ */
 public class Nia {
-    static final java.util.Random RNG = new java.util.Random();
 
-    static void printBar() {
-        final int barLength = 50;
-        System.out.println("-".repeat(barLength));
-    }
-
-    // prints a bar indented, used to visually set a reply apart from the user's input line
-    static void printIndentedBar() {
-        System.out.print("    ");
-        printBar();
-    }
-
-    // a function that given an array of strings, return one of them (each have equal probability)
-    static String pickRandomLine(String[] possibleLines) {
-        return possibleLines[RNG.nextInt(possibleLines.length)];
-    }
-
-    static void printStarter() {
-        String banner = "     _   _   ___      _    \n"
-                + "    | \\ | | |_ _|    / \\   \n"
-                + "    |  \\| |  | |    / _ \\  \n"
-                + "    | |\\  |  | |   / ___ \\ \n"
-                + "    |_| \\_| |___| /_/   \\_\\\n";
-        String[] startingLines = {
-                "How can I help you?",
-                "What do you need me to do?",
-                "Mm... give me something to do, I guess.",
-                "Alright, alright, I'm here. What's up?",
-                "Don't mind me, just say what you need.",
-                "Surprised to see me? Haha, relax. I told you we'd meet again.",
-        };
-        printIndentedBar();
-        System.out.println(banner);
-        System.out.println("    Hi, my name's Nia.");
-        System.out.println("    " + pickRandomLine(startingLines));
-        printIndentedBar();
-    }
-
-    // after user does an action, has a chance to trigger this line
-    static void printAfterRequest() {
-        String[] postActionLines = {
-                "Anything else?",
-                "I'm not much of a helper... Can I just slack off?",
-                "Fine, fine... I'll help.",
-                "Done. Was that so hard? ...for me, I mean.",
-                "Hah, easy. What's next?",
-                "Mm, noted. Don't expect this energy every time.",
-                "There, sorted. Now let me go back to doing nothing.",
-                "You know, most people would've just given up there.",
-                "Working is so tiring, why don't you take a break?",
-        };
-        System.out.println(pickRandomLine(postActionLines));
-    }
-
-    // triggers when program ends
-    static void printEnding() {
-        String[] endingLines = {
-                "Mm, I'm off. Try not to miss me too much.",
-                "Later~ Don't work yourself too hard, okay?",
-                "Guess that's enough for today. Go rest a bit."
-        };
-        printIndentedBar();
-        System.out.print("    ");
-        System.out.println(pickRandomLine(endingLines));
-        printIndentedBar();
-    }
-
+    /** Reads commands from stdin in a loop until an exit command is entered. */
     public static void main(String[] args) {
-        printStarter();
+        Ui.printStarter();
 
-        Task[] taskList = new Task[100];
-        int taskCount = 0;
+        TaskList taskList = new TaskList(100);
 
-        // Actions Loop
         java.util.Set<String> exitCommands = java.util.Set.of("bye", "close", "exit", "quit");
         java.util.Scanner scanner = new java.util.Scanner(System.in);
         String command;
         while (true) {
-            // .trim() up front so exit-checking and word-splitting agree on what counts as the command
+            Ui.printBar();
+            System.out.print("❯ ");
             command = scanner.nextLine().trim();
-            // Skip empty lines of input
+            Ui.printBar();
+            // Ignore empty commands
             if (command.isEmpty()) {
                 continue;
             }
-            // User quits
+
+            // Exits program
             if (exitCommands.contains(command)) {
                 break;
             }
 
-            // \\s+ handles multiple spaces between words
             String[] words = command.split("\\s+");
             String firstWord = words.length > 0 ? words[0] : "";
 
-            // User types a non-empty command that is not quitting
             switch (firstWord) {
                 case "list":
-                    printIndentedBar();
-                    if (taskCount == 0) {
-                        System.out.println("    Nothing here..."); // Change to fit Nia's Personality
-                    }
-                    for (int i = 0; i < taskCount; i++) {
-                        System.out.printf("     %d. [%s] %s%n", i + 1, taskList[i].getStatusIcon(), taskList[i].getDescription());
-                    }
-                    printIndentedBar();
+                    handleList(taskList);
                     break;
                 case "mark":
                 case "unmark":
-                    if (words.length != 2) {
-                        printIndentedBar();
-                        System.out.println("    [Debug] Incorrect number of arguments, expected 1 argument"); // Debug message
-                        System.out.println("    Can you at least give me a real order?"); // Nia's voiceline placeholder
-                        printIndentedBar();
-                        break;
-                    }
-                    int taskToChange;
-                    try {
-                        taskToChange = Integer.parseInt(words[1]);
-                    } catch (NumberFormatException e) {
-                        printIndentedBar();
-                        System.out.println("    [Debug] Expected a number in argument 1"); // Debug message
-                        System.out.println("    Just so you know, I only identify tasks with numbers."); // Nia's voiceline placeholder
-                        printIndentedBar();
-                        break;
-                    }
-                    // Bounds check: task numbers are 1-indexed and must refer to an existing task
-                    if (taskToChange < 1 || taskToChange > taskCount) {
-                        printIndentedBar();
-                        System.out.printf("    [Debug] Task number %d is out of range (1-%d)%n", taskToChange, taskCount); // Debug message
-                        System.out.println("    That task doesn't exist... did you make it up?"); // Nia's voiceline placeholder
-                        printIndentedBar();
-                        break;
-                    }
-
-                    // Slightly annoying: you can mark an already done task and unmark an unmarked task
-                    printIndentedBar();
-                    if (firstWord.equals("mark")) {
-                        taskList[taskToChange - 1].markAsDone();
-                        System.out.printf("    Marked %d as done%n", taskToChange);
-                    } else {
-                        taskList[taskToChange - 1].markAsNotDone();
-                        System.out.printf("    Marked %d as not done%n", taskToChange);
-                    }
-                    printIndentedBar();
+                    handleMarkOrUnmark(words, taskList, firstWord.equals("mark"));
                     break;
                 default:
-                    printIndentedBar();
-                    // Prevents adding over 100 tasks
-                    if (taskCount < taskList.length) {
-                        Task t = new Task(command);
-                        taskList[taskCount++] = t;
-                        System.out.println("    added: " + command); // Change to fit Nia's Personality if is an improvement
-                    } else {
-                        System.out.println("    I can't remember all of that"); // Maybe change this line, or add some variant
-                    }
-                    printIndentedBar();
+                    handleAdd(command, taskList);
                     break;
             }
         }
-        printEnding();
+        Ui.printEnding();
+    }
+
+    /**
+     * Prints every task in taskList, or a placeholder message if it's empty.
+     */
+    private static void handleList(TaskList taskList) {
+        if (taskList.isEmpty()) {
+            Ui.printIndent("Nothing here...");
+            return;
+        }
+        for (int i = 1; i <= taskList.size(); i++) {
+            Task task = taskList.get(i);
+            Ui.printIndent(String.format("%d. [%s] %s", i, task.getStatusIcon(), task.getDescription()));
+        }
+    }
+
+    /**
+     * Parses and validates `words` (expects exactly ["mark"/"unmark", "<number>"]),
+     * then marks/unmarks the referenced task.
+     * Guard clauses: return early on wrong arg count, non-numeric arg, or out-of-range index —
+     * this is what keeps this method flat instead of nesting ifs inside ifs.
+     */
+    private static void handleMarkOrUnmark(String[] words, TaskList taskList, boolean markAsDone) {
+        if (words.length != 2) {
+            Ui.printIndent("[Debug] Incorrect number of arguments, expected 1 argument"); // Debug message
+            Ui.printIndent("Can you at least give me a real order?"); // Nia's voiceline placeholder
+            return;
+        }
+
+        int taskToChange;
+        try {
+            taskToChange = Integer.parseInt(words[1]);
+        } catch (NumberFormatException e) {
+            Ui.printIndent("[Debug] Expected a number in argument 1"); // Debug message
+            Ui.printIndent("Just so you know, I only identify tasks with numbers."); // Nia's voiceline placeholder
+            return;
+        }
+
+        if (taskList.isNotValidIndex(taskToChange)) {
+            Ui.printIndent(String.format(
+                    "[Debug] Task number %d is out of range (1-%d) or does not exist"
+                    , taskToChange, taskList.size())); // Debug message
+            Ui.printIndent("That task doesn't exist... did you make it up?"); // Nia's voiceline placeholder
+            return;
+        }
+
+        if (markAsDone) {
+            taskList.get(taskToChange).markAsDone();
+            Ui.printIndent(String.format("Marked %d as done", taskToChange));
+        } else {
+            taskList.get(taskToChange).markAsNotDone();
+            Ui.printIndent(String.format("Marked %d as not done", taskToChange));
+        }
+    }
+
+    /**
+     * Adds a new task built from the raw command text, or prints an error if taskList is full.
+     */
+    private static void handleAdd(String command, TaskList taskList) {
+        if (taskList.isFull()) {
+            Ui.printIndent("Task list is full");
+            return;
+        }
+        Task t = new Task(command);
+        taskList.add(t);
+        Ui.printIndent("I've added the task [" + command + "] to your task list");
     }
 }

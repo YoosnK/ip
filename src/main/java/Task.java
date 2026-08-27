@@ -1,3 +1,7 @@
+/**
+ * Represents a single task: its description and whether it has been completed.
+ * New tasks start as not done.
+ */
 public class Task {
     protected String description;
     protected boolean isDone;
@@ -11,6 +15,7 @@ public class Task {
         return this.description;
     }
 
+    /** Returns "X" if the task is done, or a blank space otherwise (for display, e.g. "[X]"/"[ ]"). */
     public String getStatusIcon() {
         return (isDone ? "X" : " ");
     }

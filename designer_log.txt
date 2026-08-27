@@ -1,0 +1,43 @@
+1. Changing wrap style
+
+Changed FROM using bars to wrap nia's lines TO wrapping bars around user input
+Reason: Highlight user input, easier to process multiple lines of output at once
+
+Initial:
+
+> user command
+    --------------------------------------------------
+    Nia's reply
+    --------------------------------------------------
+> user command
+    --------------------------------------------------
+    Nia's reply
+    --------------------------------------------------
+
+New:
+
+--------------------------------------------------
+> user command
+--------------------------------------------------
+    Nia's reply
+--------------------------------------------------
+> user command
+--------------------------------------------------
+    Nia's reply
+
+2. Refactoring Nia.java (done in parallel with change 1)
+
+Changed
+
+FROM one large main() with command handling nested up to 6 levels deep
+(switch -> case -> if -> try/catch -> if)
+
+TO splitting responsibilities across classes:
+- Ui: all user-facing output (banners, bars, personality lines, indenting)
+- TaskList: owns the task array + count, exposes add/get/size/isFull/isNotValidIndex
+- Nia: main() only reads input and dispatches; each command lives in its own
+  handleXxx(...) method using guard clauses (early return) instead of nested ifs
+
+Reason: Deep nesting was hard to read/maintain; splitting by responsibility and
+using guard clauses keeps each method flat and makes it easier to add new commands
+without growing the nesting further.
