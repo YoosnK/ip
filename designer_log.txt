@@ -41,3 +41,55 @@ TO splitting responsibilities across classes:
 Reason: Deep nesting was hard to read/maintain; splitting by responsibility and
 using guard clauses keeps each method flat and makes it easier to add new commands
 without growing the nesting further.
+
+3. Further splitting Nia.java and Ui.java (decided, not yet implemented)
+
+Planned change FROM current split (Nia does dispatch + parsing, Ui does all output)
+TO:
+- Parser: takes the raw input line and extracts the command word (and later, args);
+  also owns the exit-command check (currently a Set.of(...) inline in Nia.main).
+  Nia.main becomes read -> Parser.parse -> dispatch, nothing else.
+- Ui split into:
+  - Formatter: printIndent, printBar, getUserInput() -> String - pure terminal I/O,
+    no personality content. getUserInput() moves the Scanner/nextLine().trim() call
+    out of Nia.main, since reading input is the same kind of generic I/O concern as
+    printing it.
+  - VoicelineManager: RNG, pickRandomLine, the voiceline arrays, and
+    printStarter/printAfterRequest/printEnding - calls Formatter to actually print.
+  (Banner string stays in VoicelineManager.printStarter for now since it's only used
+  there; split out separately only if it grows.)
+
+Reason: Same motivation as change 2 - each of these classes currently mixes concerns
+that will evolve at different rates (parsing logic vs. dispatch; personality content
+vs. generic I/O). Keeping them separate now, while the codebase is still small,
+avoids re-tangling them later once more commands/voicelines are added.
+
+4. Splitting further into InputReader/Parser/Processor/Printer/VoicelineManager (implemented)
+
+Changed FROM the plan in change 3 (Parser + Ui-split-into-Formatter/VoicelineManager)
+TO a finer split, once it became clear reading input, sanitizing it, and acting on it
+are three separate concerns:
+- InputReader: only reads a raw line from stdin (Scanner.nextLine()). No trimming,
+  no parsing, no printing.
+- Parser: takes the raw line and turns it into a clean, canonical String[] words array
+  for Processor. Owns sanitization: trims, guards blank input (returns an empty array
+  Nia skips), splits on whitespace, and resolves command ALIASES
+  (e.g. "close"/"exit"/"quit" -> "bye"). This is also where future aliases like
+  "dl" -> "deadline" will be registered.
+- Processor: pure command logic, dispatches on the already-canonical words[0]
+  (replaces Nia's old handleList/handleMarkOrUnmark/handleAdd). Contains zero
+  knowledge of alternate spellings - by design, only Parser knows aliases exist.
+  Returns a boolean (continue running or not) instead of Nia checking an exit-command
+  set directly, since "bye" is just another command as far as Processor is concerned.
+- Printer (renamed from the planned Formatter): printIndent, printBar, printPrompt -
+  pure terminal output, no personality content.
+- VoicelineManager (replaces Ui): RNG, pickRandomLine, printStarter/printAfterRequest/
+  printEnding - calls Printer to actually print.
+- Nia.main: now only orchestrates InputReader -> Parser -> Processor in a loop; no
+  command logic or sanitization left in it.
+
+Reason: Aliases needed a clear, single home so adding one later (e.g. deadline's "dl"
+shorthand) doesn't require touching command-dispatch code. Putting alias resolution in
+Parser means Processor can stay pure logic with no knowledge of alternate spellings,
+and InputReader/Printer stay pure I/O with no sanitization or personality baked in -
+each class now answers to exactly one reason to change.
