@@ -1,8 +1,10 @@
 /**
  * Turns raw input text into a clean, canonical array of words for Processor.
  * Owns all input sanitization: trimming, blank-input guarding, word-splitting,
- * and command-alias resolution (e.g. "close"/"exit"/"quit" all mean "bye").
- * Processor should never see a non-canonical command word.
+ * command-alias resolution (e.g. "close"/"exit"/"quit" all mean "bye"), and the
+ * command-specific shape of the "add task" commands (todo/deadline/event).
+ * Processor should never see a non-canonical command word, and should be able
+ * to trust the array shape for each command without re-splitting anything.
  */
 public class Parser {
     /**
@@ -12,13 +14,22 @@ public class Parser {
     private static final java.util.Map<String, String> ALIASES = java.util.Map.of(
             "close", "bye",
             "exit", "bye",
-            "quit", "bye"
+            "quit", "bye",
+            "td", "todo",
+            "dl", "deadline"
     );
 
     /**
-     * Trims and splits `rawInput` into words, resolving the first word through
-     * ALIASES. Returns an empty array if `rawInput` is blank - callers should
-     * treat that as "nothing to process" and skip it.
+     * Splits `rawInput` into a canonical command word plus command-specific
+     * fields, e.g.:
+     *   "td buy milk"                        -> ["todo", "buy milk"]
+     *   "dl return book /by Sunday"          -> ["deadline", "return book", "Sunday"]
+     *   "event exam /from Mon /to Tue"       -> ["event", "exam", "Mon", "Tue"]
+     * Other commands (bye/list/mark/unmark, and unrecognized words) fall back to a
+     * plain whitespace split with only the first word alias-resolved.
+     * Returns an empty array if `rawInput` is blank - callers should treat that
+     * as "nothing to process" and skip it. Missing fields (e.g. no "/by") come
+     * back as empty strings for Processor to validate.
      */
     static String[] parse(String rawInput) {
         String trimmed = rawInput.trim();
@@ -26,8 +37,48 @@ public class Parser {
             return new String[0];
         }
 
-        String[] words = trimmed.split("\\s+");
-        words[0] = ALIASES.getOrDefault(words[0], words[0]);
-        return words;
+        int firstSpace = trimmed.indexOf(' ');
+        String commandWord = firstSpace == -1 ? trimmed : trimmed.substring(0, firstSpace);
+        String rest = firstSpace == -1 ? "" : trimmed.substring(firstSpace + 1).trim();
+        String command = ALIASES.getOrDefault(commandWord, commandWord);
+
+        switch (command) {
+            case "todo":
+                return new String[]{command, rest};
+            case "deadline":
+                return parseDeadline(command, rest);
+            case "event":
+                return parseEvent(command, rest);
+            default:
+                String[] words = trimmed.split("\\s+");
+                words[0] = command;
+                return words;
+        }
+    }
+
+    /** Splits `rest` on "/by" into description and by-fields; either half may come back empty. */
+    private static String[] parseDeadline(String command, String rest) {
+        int byIndex = rest.indexOf("/by");
+        String description = byIndex == -1 ? rest.trim() : rest.substring(0, byIndex).trim();
+        String by = byIndex == -1 ? "" : rest.substring(byIndex + "/by".length()).trim();
+        return new String[]{command, description, by};
+    }
+
+    /** Splits `rest` on "/from" and "/to" into description, from, and to; any half may come back empty. */
+    private static String[] parseEvent(String command, String rest) {
+        int fromIndex = rest.indexOf("/from");
+        int toIndex = rest.indexOf("/to");
+
+        String description = fromIndex == -1 ? rest.trim() : rest.substring(0, fromIndex).trim();
+
+        String from = "";
+        if (fromIndex != -1) {
+            int fromEnd = (toIndex != -1 && toIndex > fromIndex) ? toIndex : rest.length();
+            from = rest.substring(fromIndex + "/from".length(), fromEnd).trim();
+        }
+
+        String to = toIndex == -1 ? "" : rest.substring(toIndex + "/to".length()).trim();
+
+        return new String[]{command, description, from, to};
     }
 }

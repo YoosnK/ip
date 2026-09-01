@@ -19,8 +19,17 @@ public class Processor {
             case "unmark":
                 handleMarkOrUnmark(words, taskList, command.equals("mark"));
                 return true;
+            case "todo":
+                handleAddTodo(words, taskList);
+                return true;
+            case "deadline":
+                handleAddDeadline(words, taskList);
+                return true;
+            case "event":
+                handleAddEvent(words, taskList);
+                return true;
             default:
-                handleAdd(words, taskList);
+                handleUnknownCommand();
                 return true;
         }
     }
@@ -35,7 +44,7 @@ public class Processor {
         }
         for (int i = 1; i <= taskList.size(); i++) {
             Task task = taskList.get(i);
-            Printer.printIndent(String.format("%d. [%s] %s", i, task.getStatusIcon(), task.getDescription()));
+            Printer.printIndent(String.format("%d. %s", i, task));
         }
     }
 
@@ -79,16 +88,63 @@ public class Processor {
     }
 
     /**
-     * Adds a new task built from the raw command words, or prints an error if taskList is full.
+     * Adds a Todo from `words` = ["todo", description]. Rejects a blank description
+     * rather than silently creating an empty task.
      */
-    private static void handleAdd(String[] words, TaskList taskList) {
+    private static void handleAddTodo(String[] words, TaskList taskList) {
+        String description = words[1];
+        if (description.isEmpty()) {
+            Printer.printIndent("[Debug] Todo description is empty"); // Debug message
+            Printer.printIndent("A todo with nothing in it? There's nothing for me to do."); // Nia's voiceline placeholder
+            return;
+        }
+        addTask(new Todo(description), taskList);
+    }
+
+    /**
+     * Adds a Deadline from `words` = ["deadline", description, by]. Rejects a
+     * missing description or missing "/by" rather than silently dropping the field.
+     */
+    private static void handleAddDeadline(String[] words, TaskList taskList) {
+        String description = words[1];
+        String by = words[2];
+        if (description.isEmpty() || by.isEmpty()) {
+            Printer.printIndent("[Debug] Deadline needs a description and a /by"); // Debug message
+            Printer.printIndent("I need a description and a /by, or I've got nothing to remember."); // Nia's voiceline placeholder
+            return;
+        }
+        addTask(new Deadline(description, by), taskList);
+    }
+
+    /**
+     * Adds an Event from `words` = ["event", description, from, to]. Rejects a
+     * missing description, "/from", or "/to" rather than silently dropping a field.
+     */
+    private static void handleAddEvent(String[] words, TaskList taskList) {
+        String description = words[1];
+        String from = words[2];
+        String to = words[3];
+        if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
+            Printer.printIndent("[Debug] Event needs a description, a /from, and a /to"); // Debug message
+            Printer.printIndent("Description, /from, /to. All three, or don't bother."); // Nia's voiceline placeholder
+            return;
+        }
+        addTask(new Event(description, from, to), taskList);
+    }
+
+    /** Adds `task` to taskList, or prints an error if taskList is full. */
+    private static void addTask(Task task, TaskList taskList) {
         if (taskList.isFull()) {
             Printer.printIndent("Task list is full");
             return;
         }
-        String description = String.join(" ", words);
-        Task t = new Task(description);
-        taskList.add(t);
-        Printer.printIndent("I've added the task [" + description + "] to your task list");
+        taskList.add(task);
+        Printer.printIndent("I've added the task [" + task + "] to your task list");
+    }
+
+    /** Prints an error for a command word that isn't recognized - no task is created. */
+    private static void handleUnknownCommand() {
+        Printer.printIndent("[Debug] Unrecognized command"); // Debug message
+        Printer.printIndent("Hm? I don't know what that means."); // Nia's voiceline placeholder
     }
 }

@@ -20,6 +20,15 @@ public class Task {
         return (isDone ? "X" : " ");
     }
 
+    public String getTag() {
+        return " ";
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s] %s", this.getStatusIcon(), this.description);
+    }
+
     public void markAsDone() {
         this.isDone = true;
     }
