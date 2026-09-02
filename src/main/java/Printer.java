@@ -21,8 +21,28 @@ public class Printer {
         System.out.println(indentedMessage);
     }
 
+    /**
+     * Prints a horizontal bar spanning the terminal's width.
+     * Falls back to a fixed width if the terminal width can't be determined
+     * (e.g. when running inside an IDE or a non-interactive shell), since
+     * the COLUMNS environment variable is only reliably set by interactive terminals.
+     */
     static void printBar() {
-        final int BAR_LENGTH = 50;
-        System.out.println("-".repeat(BAR_LENGTH));
+
+        final String BAR_CHARACTER = "─";
+        System.out.println(BAR_CHARACTER.repeat(getTerminalWidth()));
+    }
+
+    private static int getTerminalWidth() {
+        final int FALLBACK_BAR_LENGTH = 100;
+        String columns = System.getenv("COLUMNS");
+        if (columns == null) {
+            return FALLBACK_BAR_LENGTH;
+        }
+        try {
+            return Integer.parseInt(columns.trim());
+        } catch (NumberFormatException e) {
+            return FALLBACK_BAR_LENGTH;
+        }
     }
 }
