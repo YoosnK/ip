@@ -2,7 +2,7 @@
  * Represents a single task: its description and whether it has been completed.
  * New tasks start as not done.
  */
-public class Task {
+public abstract class Task {
     protected String description;
     protected boolean isDone;
 
