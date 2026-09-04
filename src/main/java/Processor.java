@@ -56,7 +56,7 @@ public class Processor {
      */
     private static void handleMarkOrUnmark(String[] words, TaskList taskList, boolean markAsDone) {
         if (words.length != 2) {
-            Printer.printIndent("[Debug] Incorrect number of arguments, expected 1 argument"); // Debug message
+            Printer.printIndentedError("[Debug] Incorrect number of arguments, expected 1 argument"); // Debug message
             Printer.printIndent("Can you at least give me a real order?"); // Nia's voiceline placeholder
             return;
         }
@@ -65,13 +65,13 @@ public class Processor {
         try {
             taskToChange = Integer.parseInt(words[1]);
         } catch (NumberFormatException e) {
-            Printer.printIndent("[Debug] Expected a number in argument 1"); // Debug message
+            Printer.printIndentedError("[Debug] Expected a number in argument 1"); // Debug message
             Printer.printIndent("Just so you know, I only identify tasks with numbers."); // Nia's voiceline placeholder
             return;
         }
 
         if (taskList.isNotValidIndex(taskToChange)) {
-            Printer.printIndent(String.format(
+            Printer.printIndentedError(String.format(
                     "[Debug] Task number %d is out of range (1-%d) or does not exist"
                     , taskToChange, taskList.size())); // Debug message
             Printer.printIndent("That task doesn't exist... did you make it up?"); // Nia's voiceline placeholder
@@ -94,7 +94,7 @@ public class Processor {
     private static void handleAddTodo(String[] words, TaskList taskList) {
         String description = words[1];
         if (description.isEmpty()) {
-            Printer.printIndent("[Debug] Todo description is empty"); // Debug message
+            Printer.printIndentedError("[Debug] Todo description is empty"); // Debug message
             Printer.printIndent("A todo with nothing in it? There's nothing for me to do."); // Nia's voiceline placeholder
             return;
         }
@@ -109,7 +109,7 @@ public class Processor {
         String description = words[1];
         String by = words[2];
         if (description.isEmpty() || by.isEmpty()) {
-            Printer.printIndent("[Debug] Deadline needs a description and a /by"); // Debug message
+            Printer.printIndentedError("[Debug] Deadline needs a description and a /by"); // Debug message
             Printer.printIndent("I need a description and a /by, or I've got nothing to remember."); // Nia's voiceline placeholder
             return;
         }
@@ -125,7 +125,7 @@ public class Processor {
         String from = words[2];
         String to = words[3];
         if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
-            Printer.printIndent("[Debug] Event needs a description, a /from, and a /to"); // Debug message
+            Printer.printIndentedError("[Debug] Event needs a description, a /from, and a /to"); // Debug message
             Printer.printIndent("Description, /from, /to. All three, or don't bother."); // Nia's voiceline placeholder
             return;
         }
@@ -144,7 +144,7 @@ public class Processor {
 
     /** Prints an error for a command word that isn't recognized - no task is created. */
     private static void handleUnknownCommand() {
-        Printer.printIndent("[Debug] Unrecognized command"); // Debug message
+        Printer.printIndentedError("[Debug] Unrecognized command"); // Debug message
         Printer.printIndent("Hm? I don't know what that means."); // Nia's voiceline placeholder
     }
 }

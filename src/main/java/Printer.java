@@ -21,6 +21,14 @@ public class Printer {
         System.out.println(indentedMessage);
     }
 
+    static void printIndentedError(String message) {
+        final int INDENT_LEVEL = 4;
+        String indentedMessage = " ".repeat(INDENT_LEVEL) + message;
+        indentedMessage = indentedMessage.replace("\n", "\n" + " ".repeat(INDENT_LEVEL));
+
+        System.err.println(indentedMessage);
+    }
+
     /**
      * Prints a horizontal bar spanning the terminal's width.
      * Falls back to a fixed width if the terminal width can't be determined
