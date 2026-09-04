@@ -7,17 +7,13 @@ public class Nia {
 
     /** Reads commands from stdin in a loop until a "bye"-aliased command is entered. */
     public static void main(String[] args) {
-        Printer.printBar();
         VoicelineManager.printStarter();
 
         TaskList taskList = new TaskList(100);
 
         boolean running = true;
         while (running) {
-            Printer.printBar();
-            Printer.printPrompt();
-            String rawInput = InputReader.getUserInput();
-            Printer.printBar();
+            String rawInput = readInput();
 
             String[] words = Parser.parse(rawInput);
             if (words.length == 0) {
@@ -26,6 +22,16 @@ public class Nia {
 
             running = Processor.process(words, taskList);
         }
+
         VoicelineManager.printEnding();
+    }
+
+    /** Reads one line of input, framed with bars and a prompt above/below it. */
+    private static String readInput() {
+        Printer.printBar();
+        Printer.printPrompt();
+        String input = InputReader.getUserInput();
+        Printer.printBar();
+        return input;
     }
 }

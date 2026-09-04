@@ -26,6 +26,7 @@ public class VoicelineManager {
                 "Don't mind me, just say what you need.",
                 "Surprised to see me? Haha, relax. I told you we'd meet again.",
         };
+        Printer.printBar();
         Printer.printIndent(BANNER);
         Printer.printIndent("Hi, my name's Nia.");
         Printer.printIndent(pickRandomLine(STARTING_LINES));
