@@ -1,5 +1,5 @@
 /** Thrown when a "todo" command has no description. */
-public class EmptyTodoDescriptionException extends NiaParseException {
+public class EmptyTodoDescriptionException extends NiaParserException {
     EmptyTodoDescriptionException() {
         super(
                 "[Debug] Todo description is empty",

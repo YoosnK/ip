@@ -30,10 +30,10 @@ public class Parser {
      * Returns an empty array if `rawInput` is blank - callers should treat that
      * as "nothing to process" and skip it. A todo/deadline/event missing a
      * required field (description, "/by", "/from", or "/to") throws the
-     * matching NiaParseException rather than coming back with a blank field
+     * matching NiaParserException rather than coming back with a blank field
      * for Processor to catch later.
      */
-    static String[] parse(String rawInput) throws NiaParseException {
+    static String[] parse(String rawInput) throws NiaParserException {
         String trimmed = rawInput.trim();
         if (trimmed.isEmpty()) {
             return new String[0];

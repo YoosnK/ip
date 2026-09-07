@@ -1,5 +1,5 @@
 /** Thrown when a "deadline" command is missing its description and/or its "/by". */
-public class MissingDeadlineFieldsException extends NiaParseException {
+public class MissingDeadlineFieldsException extends NiaParserException {
     MissingDeadlineFieldsException() {
         super(
                 "[Debug] Deadline needs a description and a /by",

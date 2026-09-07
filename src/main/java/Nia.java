@@ -18,7 +18,7 @@ public class Nia {
             String[] words;
             try {
                 words = Parser.parse(rawInput);
-            } catch (NiaParseException e) {
+            } catch (NiaParserException e) {
                 Printer.printIndentedError(e.getMessage());
                 Printer.printIndent(e.getVoiceline());
                 continue;
