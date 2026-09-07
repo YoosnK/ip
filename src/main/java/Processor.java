@@ -6,7 +6,7 @@
 public class Processor {
 
     /** Dispatches on words[0]. Returns false when the program should stop running. */
-    static boolean process(String[] words, TaskList taskList) {
+    static boolean process(String[] words, TaskList taskList) throws NiaProcessorException {
         String command = words[0];
 
         switch (command) {
@@ -29,8 +29,7 @@ public class Processor {
                 handleAddEvent(words, taskList);
                 return true;
             default:
-                handleUnknownCommand();
-                return true;
+                throw new UnknownCommandException();
         }
     }
 
@@ -51,31 +50,24 @@ public class Processor {
     /**
      * Parses and validates `words` (expects exactly ["mark"/"unmark", "<number>"]),
      * then marks/unmarks the referenced task.
-     * Guard clauses: return early on wrong arg count, non-numeric arg, or out-of-range index —
+     * Guard clauses: throw early on wrong arg count, non-numeric arg, or out-of-range index —
      * this is what keeps this method flat instead of nesting ifs inside ifs.
      */
-    private static void handleMarkOrUnmark(String[] words, TaskList taskList, boolean markAsDone) {
+    private static void handleMarkOrUnmark(String[] words, TaskList taskList, boolean markAsDone)
+            throws NiaProcessorException {
         if (words.length != 2) {
-            Printer.printIndentedError("[Debug] Incorrect number of arguments, expected 1 argument"); // Debug message
-            Printer.printIndent("Can you at least give me a real order?"); // Nia's voiceline placeholder
-            return;
+            throw new IncorrectMarkArgumentCountException();
         }
 
         int taskToChange;
         try {
             taskToChange = Integer.parseInt(words[1]);
         } catch (NumberFormatException e) {
-            Printer.printIndentedError("[Debug] Expected a number in argument 1"); // Debug message
-            Printer.printIndent("Just so you know, I only identify tasks with numbers."); // Nia's voiceline placeholder
-            return;
+            throw new NonNumericTaskIndexException();
         }
 
         if (taskList.isNotValidIndex(taskToChange)) {
-            Printer.printIndentedError(String.format(
-                    "[Debug] Task number %d is out of range (1-%d) or does not exist"
-                    , taskToChange, taskList.size())); // Debug message
-            Printer.printIndent("That task doesn't exist... did you make it up?"); // Nia's voiceline placeholder
-            return;
+            throw new InvalidTaskIndexException(taskToChange, taskList.size());
         }
 
         if (markAsDone) {
@@ -91,7 +83,7 @@ public class Processor {
      * Adds a Todo from `words` = ["todo", description]. Parser guarantees
      * description is non-blank before words ever reaches here.
      */
-    private static void handleAddTodo(String[] words, TaskList taskList) {
+    private static void handleAddTodo(String[] words, TaskList taskList) throws TaskListFullException {
         addTask(new Todo(words[1]), taskList);
     }
 
@@ -99,7 +91,7 @@ public class Processor {
      * Adds a Deadline from `words` = ["deadline", description, by]. Parser
      * guarantees both fields are non-blank before words ever reaches here.
      */
-    private static void handleAddDeadline(String[] words, TaskList taskList) {
+    private static void handleAddDeadline(String[] words, TaskList taskList) throws TaskListFullException {
         addTask(new Deadline(words[1], words[2]), taskList);
     }
 
@@ -107,23 +99,16 @@ public class Processor {
      * Adds an Event from `words` = ["event", description, from, to]. Parser
      * guarantees all three fields are non-blank before words ever reaches here.
      */
-    private static void handleAddEvent(String[] words, TaskList taskList) {
+    private static void handleAddEvent(String[] words, TaskList taskList) throws TaskListFullException {
         addTask(new Event(words[1], words[2], words[3]), taskList);
     }
 
-    /** Adds `task` to taskList, or prints an error if taskList is full. */
-    private static void addTask(Task task, TaskList taskList) {
+    /** Adds `task` to taskList, or throws if taskList is full. */
+    private static void addTask(Task task, TaskList taskList) throws TaskListFullException {
         if (taskList.isFull()) {
-            Printer.printIndent("Task list is full");
-            return;
+            throw new TaskListFullException();
         }
         taskList.add(task);
         Printer.printIndent("I've added the task [" + task + "] to your task list");
-    }
-
-    /** Prints an error for a command word that isn't recognized - no task is created. */
-    private static void handleUnknownCommand() {
-        Printer.printIndentedError("[Debug] Unrecognized command"); // Debug message
-        Printer.printIndent("Hm? I don't know what that means."); // Nia's voiceline placeholder
     }
 }
