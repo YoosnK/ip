@@ -88,48 +88,27 @@ public class Processor {
     }
 
     /**
-     * Adds a Todo from `words` = ["todo", description]. Rejects a blank description
-     * rather than silently creating an empty task.
+     * Adds a Todo from `words` = ["todo", description]. Parser guarantees
+     * description is non-blank before words ever reaches here.
      */
     private static void handleAddTodo(String[] words, TaskList taskList) {
-        String description = words[1];
-        if (description.isEmpty()) {
-            Printer.printIndentedError("[Debug] Todo description is empty"); // Debug message
-            Printer.printIndent("A todo with nothing in it? There's nothing for me to do."); // Nia's voiceline placeholder
-            return;
-        }
-        addTask(new Todo(description), taskList);
+        addTask(new Todo(words[1]), taskList);
     }
 
     /**
-     * Adds a Deadline from `words` = ["deadline", description, by]. Rejects a
-     * missing description or missing "/by" rather than silently dropping the field.
+     * Adds a Deadline from `words` = ["deadline", description, by]. Parser
+     * guarantees both fields are non-blank before words ever reaches here.
      */
     private static void handleAddDeadline(String[] words, TaskList taskList) {
-        String description = words[1];
-        String by = words[2];
-        if (description.isEmpty() || by.isEmpty()) {
-            Printer.printIndentedError("[Debug] Deadline needs a description and a /by"); // Debug message
-            Printer.printIndent("I need a description and a /by, or I've got nothing to remember."); // Nia's voiceline placeholder
-            return;
-        }
-        addTask(new Deadline(description, by), taskList);
+        addTask(new Deadline(words[1], words[2]), taskList);
     }
 
     /**
-     * Adds an Event from `words` = ["event", description, from, to]. Rejects a
-     * missing description, "/from", or "/to" rather than silently dropping a field.
+     * Adds an Event from `words` = ["event", description, from, to]. Parser
+     * guarantees all three fields are non-blank before words ever reaches here.
      */
     private static void handleAddEvent(String[] words, TaskList taskList) {
-        String description = words[1];
-        String from = words[2];
-        String to = words[3];
-        if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
-            Printer.printIndentedError("[Debug] Event needs a description, a /from, and a /to"); // Debug message
-            Printer.printIndent("Description, /from, /to. All three, or don't bother."); // Nia's voiceline placeholder
-            return;
-        }
-        addTask(new Event(description, from, to), taskList);
+        addTask(new Event(words[1], words[2], words[3]), taskList);
     }
 
     /** Adds `task` to taskList, or prints an error if taskList is full. */

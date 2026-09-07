@@ -1,0 +1,8 @@
+/** Thrown when an "event" command is missing its description, "/from", and/or "/to". */
+public class MissingEventFieldsException extends NiaParseException {
+    MissingEventFieldsException() {
+        super(
+                "[Debug] Event needs a description, a /from, and a /to",
+                "Description, /from, /to. All three, or don't bother.");
+    }
+}

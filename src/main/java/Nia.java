@@ -15,7 +15,14 @@ public class Nia {
         while (running) {
             String rawInput = readInput();
 
-            String[] words = Parser.parse(rawInput);
+            String[] words;
+            try {
+                words = Parser.parse(rawInput);
+            } catch (NiaParseException e) {
+                Printer.printIndentedError(e.getMessage());
+                Printer.printIndent(e.getVoiceline());
+                continue;
+            }
             if (words.length == 0) {
                 continue;
             }

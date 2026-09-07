@@ -28,10 +28,12 @@ public class Parser {
      * Other commands (bye/list/mark/unmark, and unrecognized words) fall back to a
      * plain whitespace split with only the first word alias-resolved.
      * Returns an empty array if `rawInput` is blank - callers should treat that
-     * as "nothing to process" and skip it. Missing fields (e.g. no "/by") come
-     * back as empty strings for Processor to validate.
+     * as "nothing to process" and skip it. A todo/deadline/event missing a
+     * required field (description, "/by", "/from", or "/to") throws the
+     * matching NiaParseException rather than coming back with a blank field
+     * for Processor to catch later.
      */
-    static String[] parse(String rawInput) {
+    static String[] parse(String rawInput) throws NiaParseException {
         String trimmed = rawInput.trim();
         if (trimmed.isEmpty()) {
             return new String[0];
@@ -44,7 +46,7 @@ public class Parser {
 
         switch (command) {
             case "todo":
-                return new String[]{command, rest};
+                return parseTodo(command, rest);
             case "deadline":
                 return parseDeadline(command, rest);
             case "event":
@@ -56,16 +58,28 @@ public class Parser {
         }
     }
 
-    /** Splits `rest` on "/by" into description and by-fields; either half may come back empty. */
-    private static String[] parseDeadline(String command, String rest) {
+    /** Rejects a blank description rather than letting an empty todo through. */
+    private static String[] parseTodo(String command, String rest) throws EmptyTodoDescriptionException {
+        if (rest.isEmpty()) {
+            throw new EmptyTodoDescriptionException();
+        }
+        return new String[]{command, rest};
+    }
+
+    /** Splits `rest` on "/by" into description and by-fields; throws if either comes back blank. */
+    private static String[] parseDeadline(String command, String rest) throws MissingDeadlineFieldsException {
         int byIndex = rest.indexOf("/by");
         String description = byIndex == -1 ? rest.trim() : rest.substring(0, byIndex).trim();
         String by = byIndex == -1 ? "" : rest.substring(byIndex + "/by".length()).trim();
+
+        if (description.isEmpty() || by.isEmpty()) {
+            throw new MissingDeadlineFieldsException();
+        }
         return new String[]{command, description, by};
     }
 
-    /** Splits `rest` on "/from" and "/to" into description, from, and to; any half may come back empty. */
-    private static String[] parseEvent(String command, String rest) {
+    /** Splits `rest` on "/from" and "/to" into description, from, and to; throws if any comes back blank. */
+    private static String[] parseEvent(String command, String rest) throws MissingEventFieldsException {
         int fromIndex = rest.indexOf("/from");
         int toIndex = rest.indexOf("/to");
 
@@ -79,6 +93,9 @@ public class Parser {
 
         String to = toIndex == -1 ? "" : rest.substring(toIndex + "/to".length()).trim();
 
+        if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
+            throw new MissingEventFieldsException();
+        }
         return new String[]{command, description, from, to};
     }
 }
