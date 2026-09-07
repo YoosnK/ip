@@ -17,7 +17,7 @@ public class Nia {
 
     /** Reads commands from stdin in a loop until a "bye"-aliased command is entered. */
     public static void main(String[] args) {
-        VoicelineManager.printStarter();
+        printStarter();
 
         TaskList taskList = new TaskList(100);
 
@@ -37,7 +37,20 @@ public class Nia {
             }
         }
 
-        VoicelineManager.printEnding();
+        printEnding();
+    }
+
+    /** Prints the startup banner, greeting, and a random opening voiceline. */
+    private static void printStarter() {
+        Printer.printBar();
+        Printer.printIndent(VoicelineManager.getBanner());
+        Printer.printIndent("Hi, my name's Nia.");
+        Printer.printIndent(VoicelineManager.getStartingLine());
+    }
+
+    /** Prints a random farewell voiceline. */
+    private static void printEnding() {
+        Printer.printIndent(VoicelineManager.getEndingLine());
     }
 
     /** Reads one line of input, framed with bars and a prompt above/below it. */

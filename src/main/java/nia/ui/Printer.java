@@ -2,8 +2,8 @@ package nia.ui;
 
 /**
  * Handles all of Nia's generic terminal output: prompts, bars, and indented text.
- * Has no knowledge of Nia's personality - that lives in VoicelineManager, which
- * calls back into this class to actually print.
+ * Has no knowledge of Nia's personality - that lives in VoicelineManager, which only
+ * supplies voiceline strings for callers to print through this class.
  */
 public class Printer {
     /** Prints the input prompt without a trailing newline. */
