@@ -15,12 +15,16 @@ public class Nia {
         while (running) {
             String rawInput = readInput();
 
-            String[] words = Parser.parse(rawInput);
-            if (words.length == 0) {
-                continue;
+            try {
+                String[] words = Parser.parse(rawInput);
+                if (words.length == 0) {
+                    continue;
+                }
+                running = Processor.process(words, taskList);
+            } catch (NiaException e) {
+                Printer.printIndentedError(e.getMessage());
+                Printer.printIndent(e.getVoiceline());
             }
-
-            running = Processor.process(words, taskList);
         }
 
         VoicelineManager.printEnding();
