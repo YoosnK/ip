@@ -2,7 +2,7 @@
 public class MissingEventFieldsException extends NiaParserException {
     MissingEventFieldsException() {
         super(
-                "[Debug] Event needs a description, a /from, and a /to",
+                "[Debug] Event needs a description, a /from, and a /to, e.g. \"event exam /from Mon /to Tue\"",
                 "Description, /from, /to. All three, or don't bother.");
     }
 }

@@ -29,7 +29,7 @@ public class Processor {
                 handleAddEvent(words, taskList);
                 return true;
             default:
-                throw new UnknownCommandException();
+                throw new UnknownCommandException(command);
         }
     }
 
@@ -63,7 +63,7 @@ public class Processor {
         try {
             taskToChange = Integer.parseInt(words[1]);
         } catch (NumberFormatException e) {
-            throw new NonNumericTaskIndexException();
+            throw new NonNumericTaskIndexException(words[1]);
         }
 
         if (taskList.isNotValidIndex(taskToChange)) {

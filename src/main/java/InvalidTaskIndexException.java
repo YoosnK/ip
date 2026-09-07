@@ -2,7 +2,8 @@
 public class InvalidTaskIndexException extends NiaProcessorException {
     InvalidTaskIndexException(int taskNumber, int listSize) {
         super(
-                String.format("[Debug] Task number %d is out of range (1-%d) or does not exist",
+                String.format(
+                        "[Debug] Task number %d is out of range (1-%d) or does not exist. Run \"list\" to see valid task numbers",
                         taskNumber, listSize),
                 "That task doesn't exist... did you make it up?");
     }

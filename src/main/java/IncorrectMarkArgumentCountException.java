@@ -2,7 +2,7 @@
 public class IncorrectMarkArgumentCountException extends NiaProcessorException {
     IncorrectMarkArgumentCountException() {
         super(
-                "[Debug] Incorrect number of arguments, expected 1 argument",
+                "[Debug] mark/unmark takes exactly one argument, a task number, e.g. \"mark 2\"",
                 "Can you at least give me a real order?");
     }
 }

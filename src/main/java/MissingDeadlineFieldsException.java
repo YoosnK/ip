@@ -2,7 +2,7 @@
 public class MissingDeadlineFieldsException extends NiaParserException {
     MissingDeadlineFieldsException() {
         super(
-                "[Debug] Deadline needs a description and a /by",
+                "[Debug] Deadline needs a description and a /by, e.g. \"deadline return book /by Sunday\"",
                 "I need a description and a /by, or I've got nothing to remember.");
     }
 }

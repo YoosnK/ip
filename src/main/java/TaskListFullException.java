@@ -2,7 +2,7 @@
 public class TaskListFullException extends NiaProcessorException {
     TaskListFullException() {
         super(
-                "[Debug] Task list is full",
+                "[Debug] Task list is full; no more tasks can be added (there is currently no way to remove one)",
                 "Task list is full");
     }
 }
