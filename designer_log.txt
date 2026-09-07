@@ -93,3 +93,23 @@ shorthand) doesn't require touching command-dispatch code. Putting alias resolut
 Parser means Processor can stay pure logic with no knowledge of alternate spellings,
 and InputReader/Printer stay pure I/O with no sanitization or personality baked in -
 each class now answers to exactly one reason to change.
+
+5. VoicelineManager no longer prints; Nia.java orchestrates (implemented)
+
+Changed FROM VoicelineManager.printStarter/printAfterRequest/printEnding calling
+Printer directly (change 4's design)
+TO:
+- VoicelineManager: pure content source - getBanner/getStartingLine/
+  getAfterRequestLine/getEndingLine, all returning String. No dependency on Printer
+  at all.
+- Nia.java: gained private printStarter()/printEnding() helper methods (alongside
+  the existing readInput()) that call Printer with strings pulled from
+  VoicelineManager, so main() stays a short read-loop overview.
+
+Reason: VoicelineManager calling Printer meant a "content" class also depended on
+and drove a "mechanics" class, so it wasn't reusable if content needed to reach the
+user through something other than Printer (e.g. a future GUI). Making it a pure
+string source restores one reason to change per class, matching the InputReader/
+Parser/Processor/Printer split. The composition logic (which lines, in what order,
+wrapped in what bars) is orchestration, not content or mechanics, so it lives in
+Nia.java as small helpers rather than being pushed back into either class.
