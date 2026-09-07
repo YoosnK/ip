@@ -1,3 +1,5 @@
+package nia.exceptions;
+
 /**
  * Thrown by Processor when a canonical command's words are individually
  * well-formed but the command still can't be carried out - e.g. a task index

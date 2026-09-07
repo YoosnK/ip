@@ -1,3 +1,5 @@
+package nia.exceptions;
+
 /**
  * Thrown by Parser when raw input can't be turned into valid, canonical
  * words - e.g. a todo/deadline/event missing a required field. Each concrete

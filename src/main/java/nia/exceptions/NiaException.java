@@ -1,3 +1,5 @@
+package nia.exceptions;
+
 /**
  * Root of Nia's exception hierarchy. Every failure that should reach the user
  * carries a pair of messages: a technical detail (passed to Exception's own
@@ -18,7 +20,7 @@ public abstract class NiaException extends Exception {
         this.voiceline = voiceline;
     }
 
-    String getVoiceline() {
+    public String getVoiceline() {
         return voiceline;
     }
 }

@@ -1,3 +1,18 @@
+package nia.processor;
+
+import nia.exceptions.IncorrectMarkArgumentCountException;
+import nia.exceptions.InvalidTaskIndexException;
+import nia.exceptions.NiaProcessorException;
+import nia.exceptions.NonNumericTaskIndexException;
+import nia.exceptions.TaskListFullException;
+import nia.exceptions.UnknownCommandException;
+import nia.tasks.Deadline;
+import nia.tasks.Event;
+import nia.tasks.Task;
+import nia.tasks.TaskList;
+import nia.tasks.Todo;
+import nia.ui.Printer;
+
 /**
  * Executes commands against a TaskList using the already-canonical, already-sanitized
  * words Parser produces. No input sanitization or alias resolution happens here -
@@ -6,7 +21,7 @@
 public class Processor {
 
     /** Dispatches on words[0]. Returns false when the program should stop running. */
-    static boolean process(String[] words, TaskList taskList) throws NiaProcessorException {
+    public static boolean process(String[] words, TaskList taskList) throws NiaProcessorException {
         String command = words[0];
 
         switch (command) {
@@ -41,8 +56,8 @@ public class Processor {
             Printer.printIndent("Nothing here...");
             return;
         }
-        for (int i = 1; i <= taskList.size(); i++) {
-            Task task = taskList.get(i);
+        for (int i = 1; i <= taskList.getSize(); i++) {
+            Task task = taskList.getTask(i);
             Printer.printIndent(String.format("%d. %s", i, task));
         }
     }
@@ -67,14 +82,14 @@ public class Processor {
         }
 
         if (taskList.isNotValidIndex(taskToChange)) {
-            throw new InvalidTaskIndexException(taskToChange, taskList.size());
+            throw new InvalidTaskIndexException(taskToChange, taskList.getSize());
         }
 
         if (markAsDone) {
-            taskList.get(taskToChange).markAsDone();
+            taskList.getTask(taskToChange).markAsDone();
             Printer.printIndent(String.format("Marked %d as done", taskToChange));
         } else {
-            taskList.get(taskToChange).markAsNotDone();
+            taskList.getTask(taskToChange).markAsNotDone();
             Printer.printIndent(String.format("Marked %d as not done", taskToChange));
         }
     }

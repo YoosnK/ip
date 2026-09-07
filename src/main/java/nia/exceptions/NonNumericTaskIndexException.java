@@ -1,6 +1,8 @@
+package nia.exceptions;
+
 /** Thrown when "mark"/"unmark"'s argument isn't a number. */
 public class NonNumericTaskIndexException extends NiaProcessorException {
-    NonNumericTaskIndexException(String badArgument) {
+    public NonNumericTaskIndexException(String badArgument) {
         super(
                 String.format(
                         "[Debug] Expected a numeric task index but got \"%s\". Use a task number, e.g. \"mark 2\"",

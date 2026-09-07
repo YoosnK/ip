@@ -1,3 +1,10 @@
+package nia.parser;
+
+import nia.exceptions.EmptyTodoDescriptionException;
+import nia.exceptions.MissingDeadlineFieldsException;
+import nia.exceptions.MissingEventFieldsException;
+import nia.exceptions.NiaParserException;
+
 /**
  * Turns raw input text into a clean, canonical array of words for Processor.
  * Owns all input sanitization: trimming, blank-input guarding, word-splitting,
@@ -33,7 +40,7 @@ public class Parser {
      * matching NiaParserException rather than coming back with a blank field
      * for Processor to catch later.
      */
-    static String[] parse(String rawInput) throws NiaParserException {
+    public static String[] parse(String rawInput) throws NiaParserException {
         String trimmed = rawInput.trim();
         if (trimmed.isEmpty()) {
             return new String[0];

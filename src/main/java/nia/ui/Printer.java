@@ -1,3 +1,5 @@
+package nia.ui;
+
 /**
  * Handles all of Nia's generic terminal output: prompts, bars, and indented text.
  * Has no knowledge of Nia's personality - that lives in VoicelineManager, which
@@ -5,7 +7,7 @@
  */
 public class Printer {
     /** Prints the input prompt without a trailing newline. */
-    static void printPrompt() {
+    public static void printPrompt() {
         System.out.print("❯ ");
     }
 
@@ -13,7 +15,7 @@ public class Printer {
      * Prints `message` indented, one indent per line so multiline strings
      * (e.g. the task list) stay aligned under the bar.
      */
-    static void printIndent(String message) {
+    public static void printIndent(String message) {
         final int INDENT_LEVEL = 4;
         String indentedMessage = " ".repeat(INDENT_LEVEL) + message;
         indentedMessage = indentedMessage.replace("\n", "\n" + " ".repeat(INDENT_LEVEL));
@@ -21,7 +23,7 @@ public class Printer {
         System.out.println(indentedMessage);
     }
 
-    static void printIndentedError(String message) {
+    public static void printIndentedError(String message) {
         final int INDENT_LEVEL = 4;
         String indentedMessage = " ".repeat(INDENT_LEVEL) + message;
         indentedMessage = indentedMessage.replace("\n", "\n" + " ".repeat(INDENT_LEVEL));
@@ -35,7 +37,7 @@ public class Printer {
      * (e.g. when running inside an IDE or a non-interactive shell), since
      * the COLUMNS environment variable is only reliably set by interactive terminals.
      */
-    static void printBar() {
+    public static void printBar() {
 
         final String BAR_CHARACTER = "─";
         System.out.println(BAR_CHARACTER.repeat(getTerminalWidth()));

@@ -1,3 +1,7 @@
+package nia.content;
+
+import nia.ui.Printer;
+
 /**
  * Owns Nia's personality content: the banner and her voicelines. Has no knowledge
  * of how output actually reaches the terminal - it calls Printer for that.
@@ -12,7 +16,7 @@ public class VoicelineManager {
         return null;
     }
 
-    static void printStarter() {
+    public static void printStarter() {
         final String BANNER = " _   _   ___      _    \n"
                 + "| \\ | | |_ _|    / \\   \n"
                 + "|  \\| |  | |    / _ \\  \n"
@@ -47,7 +51,7 @@ public class VoicelineManager {
         Printer.printIndent(pickRandomLine(POST_ACTION_LINES));
     }
 
-    static void printEnding() {
+    public static void printEnding() {
         final String[] ENDING_LINES = {
                 "Mm, I'm off. Try not to miss me too much.",
                 "Later~ Don't work yourself too hard, okay?",

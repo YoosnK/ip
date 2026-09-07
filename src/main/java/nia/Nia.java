@@ -1,3 +1,13 @@
+package nia;
+
+import nia.content.VoicelineManager;
+import nia.exceptions.NiaException;
+import nia.parser.Parser;
+import nia.processor.Processor;
+import nia.tasks.TaskList;
+import nia.ui.InputReader;
+import nia.ui.Printer;
+
 /**
  * Entry point for Nia, a CLI task-tracking assistant.
  * Runs a read-parse-process loop: InputReader reads a line, Parser sanitizes it into

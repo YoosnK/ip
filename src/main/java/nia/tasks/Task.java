@@ -1,3 +1,5 @@
+package nia.tasks;
+
 /**
  * Represents a single task: its description and whether it has been completed.
  * New tasks start as not done.
