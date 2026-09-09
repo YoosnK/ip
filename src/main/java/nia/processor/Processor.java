@@ -4,7 +4,6 @@ import nia.exceptions.IncorrectMarkArgumentCountException;
 import nia.exceptions.InvalidTaskIndexException;
 import nia.exceptions.NiaProcessorException;
 import nia.exceptions.NonNumericTaskIndexException;
-import nia.exceptions.TaskListFullException;
 import nia.exceptions.UnknownCommandException;
 import nia.tasks.Deadline;
 import nia.tasks.Event;
@@ -98,7 +97,7 @@ public class Processor {
      * Adds a Todo from `words` = ["todo", description]. Parser guarantees
      * description is non-blank before words ever reaches here.
      */
-    private static void handleAddTodo(String[] words, TaskList taskList) throws TaskListFullException {
+    private static void handleAddTodo(String[] words, TaskList taskList) {
         addTask(new Todo(words[1]), taskList);
     }
 
@@ -106,7 +105,7 @@ public class Processor {
      * Adds a Deadline from `words` = ["deadline", description, by]. Parser
      * guarantees both fields are non-blank before words ever reaches here.
      */
-    private static void handleAddDeadline(String[] words, TaskList taskList) throws TaskListFullException {
+    private static void handleAddDeadline(String[] words, TaskList taskList) {
         addTask(new Deadline(words[1], words[2]), taskList);
     }
 
@@ -114,15 +113,12 @@ public class Processor {
      * Adds an Event from `words` = ["event", description, from, to]. Parser
      * guarantees all three fields are non-blank before words ever reaches here.
      */
-    private static void handleAddEvent(String[] words, TaskList taskList) throws TaskListFullException {
+    private static void handleAddEvent(String[] words, TaskList taskList) {
         addTask(new Event(words[1], words[2], words[3]), taskList);
     }
 
-    /** Adds `task` to taskList, or throws if taskList is full. */
-    private static void addTask(Task task, TaskList taskList) throws TaskListFullException {
-        if (taskList.isFull()) {
-            throw new TaskListFullException();
-        }
+    /** Adds `task` to taskList. */
+    private static void addTask(Task task, TaskList taskList) {
         taskList.add(task);
         Printer.printIndent("I've added the task [" + task + "] to your task list");
     }

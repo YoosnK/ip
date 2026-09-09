@@ -1,51 +1,39 @@
 package nia.tasks;
 
+import java.util.ArrayList;
+
 /**
  * Owns the list of tasks and the operations on it, so command methods in Nia.java
  * don't have to juggle a Task[] array and a separate int count across method calls.
  */
 public class TaskList {
-    private final Task[] tasks;
-    private int count;
+    private final ArrayList<Task> tasks;
 
-    public TaskList(int capacity) {
-        this.tasks = new Task[capacity];
-        this.count = 0;
+    public TaskList() {
+        this.tasks = new ArrayList<>();
     }
 
     public int getSize() {
-        return this.count;
+        return this.tasks.size();
     }
 
-    public boolean isFull() {
-        return (this.count == this.tasks.length);
-    }
-
-    /** Returns false (and adds nothing) if the list is already full. */
-    public boolean add(Task task) {
-        if (this.count < this.tasks.length) {
-            this.tasks[count++] = task;
-            return true;
-        }
-        return false;
+    public void add(Task task) {
+        this.tasks.add(task);
     }
 
     public Task getTask(int oneIndexed) {
         if (isNotValidIndex(oneIndexed)) {
             return null;
         }
-        return this.tasks[oneIndexed - 1];
+        return this.tasks.get(oneIndexed - 1);
     }
 
     /** True if oneIndexed refers to an existing task. */
     public boolean isNotValidIndex(int oneIndexed) {
-        if (oneIndexed < 1 || oneIndexed > this.tasks.length) {
-            return true;
-        }
-        return this.tasks[oneIndexed - 1] == null;
+        return oneIndexed < 1 || oneIndexed > this.tasks.size();
     }
 
     public boolean isEmpty() {
-        return (this.tasks.length == 0 || this.getSize() == 0);
+        return this.tasks.isEmpty();
     }
 }
