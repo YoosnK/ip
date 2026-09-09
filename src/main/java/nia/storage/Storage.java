@@ -24,10 +24,10 @@ public class Storage {
     private static final String DATA_FILE_PATH = "./data/nia.txt";
     private static final Pattern SPLIT_PATTERN = Pattern.compile(Pattern.quote(Task.SAVE_DELIMITER));
 
-    /** Loads tasks from disk into a new TaskList of the given capacity. Never throws:
-     * a missing file yields an empty list, and a corrupted line is skipped with a warning. */
-    public static TaskList load(int capacity) {
-        TaskList taskList = new TaskList(capacity);
+    /** Loads tasks from disk into a new TaskList. Never throws: a missing file yields
+     * an empty list, and a corrupted line is skipped with a warning. */
+    public static TaskList load() {
+        TaskList taskList = new TaskList();
         Path path = Path.of(DATA_FILE_PATH);
 
         if (!Files.exists(path)) {

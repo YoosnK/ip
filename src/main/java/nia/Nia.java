@@ -20,7 +20,7 @@ public class Nia {
     public static void main(String[] args) {
         printStarter();
 
-        TaskList taskList = Storage.load(100);
+        TaskList taskList = Storage.load();
 
         boolean running = true;
         while (running) {
