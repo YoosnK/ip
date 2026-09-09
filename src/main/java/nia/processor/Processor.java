@@ -1,10 +1,9 @@
 package nia.processor;
 
-import nia.exceptions.IncorrectMarkArgumentCountException;
+import nia.exceptions.IncorrectTaskIndexArgumentCountException;
 import nia.exceptions.InvalidTaskIndexException;
 import nia.exceptions.NiaProcessorException;
 import nia.exceptions.NonNumericTaskIndexException;
-import nia.exceptions.TaskListFullException;
 import nia.exceptions.UnknownCommandException;
 import nia.tasks.Deadline;
 import nia.tasks.Event;
@@ -33,6 +32,9 @@ public class Processor {
             case "mark":
             case "unmark":
                 handleMarkOrUnmark(words, taskList, command.equals("mark"));
+                return true;
+            case "delete":
+                handleDelete(words, taskList);
                 return true;
             case "todo":
                 handleAddTodo(words, taskList);
@@ -70,20 +72,7 @@ public class Processor {
      */
     private static void handleMarkOrUnmark(String[] words, TaskList taskList, boolean markAsDone)
             throws NiaProcessorException {
-        if (words.length != 2) {
-            throw new IncorrectMarkArgumentCountException();
-        }
-
-        int taskToChange;
-        try {
-            taskToChange = Integer.parseInt(words[1]);
-        } catch (NumberFormatException e) {
-            throw new NonNumericTaskIndexException(words[1]);
-        }
-
-        if (taskList.isNotValidIndex(taskToChange)) {
-            throw new InvalidTaskIndexException(taskToChange, taskList.getSize());
-        }
+        int taskToChange = parseAndValidateTaskIndex(words, taskList);
 
         if (markAsDone) {
             taskList.getTask(taskToChange).markAsDone();
@@ -95,10 +84,47 @@ public class Processor {
     }
 
     /**
+     * Deletes the task at `words` = ["delete", "<number>"]. Prints the removed task
+     * and the resulting list size, matching the tone of the "add" confirmation.
+     */
+    private static void handleDelete(String[] words, TaskList taskList) throws NiaProcessorException {
+        int taskToRemove = parseAndValidateTaskIndex(words, taskList);
+        Task removedTask = taskList.delete(taskToRemove);
+
+        int remaining = taskList.getSize();
+        Printer.printIndent(String.format(
+                "Ugh, fine, I've thrown out this task:\n    %s\nNow you have %d task%s left in your list.",
+                removedTask, remaining, remaining == 1 ? "" : "s"));
+    }
+
+    /**
+     * Parses and validates `words` (expects exactly [command, "<number>"]) into a
+     * one-indexed task number. Shared by mark/unmark/delete, whose argument shape
+     * is identical - only what happens to the referenced task differs.
+     */
+    private static int parseAndValidateTaskIndex(String[] words, TaskList taskList) throws NiaProcessorException {
+        if (words.length != 2) {
+            throw new IncorrectTaskIndexArgumentCountException(words[0]);
+        }
+
+        int taskIndex;
+        try {
+            taskIndex = Integer.parseInt(words[1]);
+        } catch (NumberFormatException e) {
+            throw new NonNumericTaskIndexException(words[1]);
+        }
+
+        if (taskList.isNotValidIndex(taskIndex)) {
+            throw new InvalidTaskIndexException(taskIndex, taskList.getSize());
+        }
+        return taskIndex;
+    }
+
+    /**
      * Adds a Todo from `words` = ["todo", description]. Parser guarantees
      * description is non-blank before words ever reaches here.
      */
-    private static void handleAddTodo(String[] words, TaskList taskList) throws TaskListFullException {
+    private static void handleAddTodo(String[] words, TaskList taskList) {
         addTask(new Todo(words[1]), taskList);
     }
 
@@ -106,7 +132,7 @@ public class Processor {
      * Adds a Deadline from `words` = ["deadline", description, by]. Parser
      * guarantees both fields are non-blank before words ever reaches here.
      */
-    private static void handleAddDeadline(String[] words, TaskList taskList) throws TaskListFullException {
+    private static void handleAddDeadline(String[] words, TaskList taskList) {
         addTask(new Deadline(words[1], words[2]), taskList);
     }
 
@@ -114,16 +140,13 @@ public class Processor {
      * Adds an Event from `words` = ["event", description, from, to]. Parser
      * guarantees all three fields are non-blank before words ever reaches here.
      */
-    private static void handleAddEvent(String[] words, TaskList taskList) throws TaskListFullException {
+    private static void handleAddEvent(String[] words, TaskList taskList) {
         addTask(new Event(words[1], words[2], words[3]), taskList);
     }
 
-    /** Adds `task` to taskList, or throws if taskList is full. */
-    private static void addTask(Task task, TaskList taskList) throws TaskListFullException {
-        if (taskList.isFull()) {
-            throw new TaskListFullException();
-        }
+    /** Adds `task` to taskList. */
+    private static void addTask(Task task, TaskList taskList) {
         taskList.add(task);
-        Printer.printIndent("I've added the task [" + task + "] to your task list");
+        Printer.printIndent("I've added the task \"" + task + "\" to your task list");
     }
 }

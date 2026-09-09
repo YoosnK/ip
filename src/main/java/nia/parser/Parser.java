@@ -23,7 +23,9 @@ public class Parser {
             "exit", "bye",
             "quit", "bye",
             "td", "todo",
-            "dl", "deadline"
+            "dl", "deadline",
+            "ls", "list",
+            "d", "delete"
     );
 
     /**
