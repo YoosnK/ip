@@ -120,6 +120,6 @@ public class Processor {
     /** Adds `task` to taskList. */
     private static void addTask(Task task, TaskList taskList) {
         taskList.add(task);
-        Printer.printIndent("I've added the task [" + task + "] to your task list");
+        Printer.printIndent("I've added the task \"" + task + "\" to your task list");
     }
 }
