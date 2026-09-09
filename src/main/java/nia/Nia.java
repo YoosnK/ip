@@ -19,7 +19,7 @@ public class Nia {
     public static void main(String[] args) {
         printStarter();
 
-        TaskList taskList = new TaskList(100);
+        TaskList taskList = new TaskList();
 
         boolean running = true;
         while (running) {

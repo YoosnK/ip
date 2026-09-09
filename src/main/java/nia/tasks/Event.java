@@ -18,6 +18,6 @@ public class Event extends Task{
 
     @Override
     public String toString() {
-        return "[%s]".formatted(this.getTag()) + super.toString() + " (FROM: %s; TO: %s)".formatted(this.from, this.to);
+        return "[%s]".formatted(this.getTag()) + super.toString() + " (from: %s; to: %s)".formatted(this.from, this.to);
     }
 }
