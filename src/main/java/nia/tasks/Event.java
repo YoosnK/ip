@@ -20,4 +20,9 @@ public class Event extends Task{
     public String toString() {
         return "[%s]".formatted(this.getTag()) + super.toString() + " (from: %s; to: %s)".formatted(this.from, this.to);
     }
+
+    @Override
+    public String toSaveFormat() {
+        return super.toSaveFormat() + SAVE_DELIMITER + this.from + SAVE_DELIMITER + this.to;
+    }
 }

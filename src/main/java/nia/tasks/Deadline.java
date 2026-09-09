@@ -18,4 +18,9 @@ public class Deadline extends Task{
     public String toString() {
         return "[%s]".formatted(this.getTag()) + super.toString() + " (by: %s)".formatted(this.by);
     }
+
+    @Override
+    public String toSaveFormat() {
+        return super.toSaveFormat() + SAVE_DELIMITER + this.by;
+    }
 }
