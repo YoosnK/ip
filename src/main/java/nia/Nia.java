@@ -4,6 +4,7 @@ import nia.content.VoicelineManager;
 import nia.exceptions.NiaException;
 import nia.parser.Parser;
 import nia.processor.Processor;
+import nia.storage.Storage;
 import nia.tasks.TaskList;
 import nia.ui.InputReader;
 import nia.ui.Printer;
@@ -19,7 +20,7 @@ public class Nia {
     public static void main(String[] args) {
         printStarter();
 
-        TaskList taskList = new TaskList(100);
+        TaskList taskList = Storage.load(100);
 
         boolean running = true;
         while (running) {
@@ -31,6 +32,7 @@ public class Nia {
                     continue;
                 }
                 running = Processor.process(words, taskList);
+                Storage.save(taskList);
             } catch (NiaException e) {
                 Printer.printIndentedError(e.getMessage());
                 Printer.printIndent(e.getVoiceline());
