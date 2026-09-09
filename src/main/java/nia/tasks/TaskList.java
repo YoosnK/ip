@@ -28,6 +28,14 @@ public class TaskList {
         return this.tasks.get(oneIndexed - 1);
     }
 
+    /** Removes and returns the task at oneIndexed, or null if the index doesn't refer to an existing task. */
+    public Task delete(int oneIndexed) {
+        if (isNotValidIndex(oneIndexed)) {
+            return null;
+        }
+        return this.tasks.remove(oneIndexed - 1);
+    }
+
     /** True if oneIndexed refers to an existing task. */
     public boolean isNotValidIndex(int oneIndexed) {
         return oneIndexed < 1 || oneIndexed > this.tasks.size();
