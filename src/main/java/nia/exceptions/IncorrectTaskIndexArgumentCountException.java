@@ -1,7 +1,7 @@
 package nia.exceptions;
 
 /** Thrown when a command expecting exactly one task-number argument (mark/unmark/delete) isn't given one. */
-public class IncorrectTaskIndexArgumentCountException extends NiaProcessorException {
+public class IncorrectTaskIndexArgumentCountException extends NiaParserException {
     public IncorrectTaskIndexArgumentCountException(String command) {
         super(
                 String.format(

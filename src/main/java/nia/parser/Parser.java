@@ -6,7 +6,6 @@ import nia.exceptions.InvalidTaskIndexException;
 import nia.exceptions.MissingDeadlineFieldsException;
 import nia.exceptions.MissingEventFieldsException;
 import nia.exceptions.NiaParserException;
-import nia.exceptions.NiaProcessorException;
 import nia.exceptions.NonNumericTaskIndexException;
 import nia.tasks.TaskList;
 
@@ -118,7 +117,7 @@ public class Parser {
      * one-indexed task number. Shared by mark/unmark/delete, whose argument shape
      * is identical - only what happens to the referenced task differs.
      */
-    public static int parseAndValidateTaskIndex(String[] words, TaskList taskList) throws NiaProcessorException {
+    public static int parseAndValidateTaskIndex(String[] words, TaskList taskList) throws NiaParserException {
         if (words.length != 2) {
             throw new IncorrectTaskIndexArgumentCountException(words[0]);
         }

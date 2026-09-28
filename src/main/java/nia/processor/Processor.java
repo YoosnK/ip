@@ -1,6 +1,6 @@
 package nia.processor;
 
-import nia.exceptions.NiaProcessorException;
+import nia.exceptions.NiaException;
 import nia.exceptions.UnknownCommandException;
 import nia.parser.Parser;
 import nia.tasks.Deadline;
@@ -18,7 +18,7 @@ import nia.ui.Printer;
 public class Processor {
 
     /** Dispatches on words[0]. Returns false when the program should stop running. */
-    public static boolean process(String[] words, TaskList taskList) throws NiaProcessorException {
+    public static boolean process(String[] words, TaskList taskList) throws NiaException {
         String command = words[0];
 
         switch (command) {
@@ -69,7 +69,7 @@ public class Processor {
      * this is what keeps this method flat instead of nesting ifs inside ifs.
      */
     private static void handleMarkOrUnmark(String[] words, TaskList taskList, boolean markAsDone)
-            throws NiaProcessorException {
+            throws NiaException {
         int taskToChange = Parser.parseAndValidateTaskIndex(words, taskList);
 
         if (markAsDone) {
@@ -85,7 +85,7 @@ public class Processor {
      * Deletes the task at `words` = ["delete", "<number>"]. Prints the removed task
      * and the resulting list size, matching the tone of the "add" confirmation.
      */
-    private static void handleDelete(String[] words, TaskList taskList) throws NiaProcessorException {
+    private static void handleDelete(String[] words, TaskList taskList) throws NiaException {
         int taskToRemove = Parser.parseAndValidateTaskIndex(words, taskList);
         Task removedTask = taskList.delete(taskToRemove);
 

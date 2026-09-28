@@ -1,7 +1,7 @@
 package nia.exceptions;
 
 /** Thrown when a task index refers to a task that doesn't exist. */
-public class InvalidTaskIndexException extends NiaProcessorException {
+public class InvalidTaskIndexException extends NiaParserException {
     public InvalidTaskIndexException(int taskNumber, int listSize) {
         super(
                 String.format(
