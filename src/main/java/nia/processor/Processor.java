@@ -1,10 +1,8 @@
 package nia.processor;
 
-import nia.exceptions.IncorrectTaskIndexArgumentCountException;
-import nia.exceptions.InvalidTaskIndexException;
 import nia.exceptions.NiaProcessorException;
-import nia.exceptions.NonNumericTaskIndexException;
 import nia.exceptions.UnknownCommandException;
+import nia.parser.Parser;
 import nia.tasks.Deadline;
 import nia.tasks.Event;
 import nia.tasks.Task;
@@ -72,7 +70,7 @@ public class Processor {
      */
     private static void handleMarkOrUnmark(String[] words, TaskList taskList, boolean markAsDone)
             throws NiaProcessorException {
-        int taskToChange = parseAndValidateTaskIndex(words, taskList);
+        int taskToChange = Parser.parseAndValidateTaskIndex(words, taskList);
 
         if (markAsDone) {
             taskList.getTask(taskToChange).markAsDone();
@@ -88,36 +86,13 @@ public class Processor {
      * and the resulting list size, matching the tone of the "add" confirmation.
      */
     private static void handleDelete(String[] words, TaskList taskList) throws NiaProcessorException {
-        int taskToRemove = parseAndValidateTaskIndex(words, taskList);
+        int taskToRemove = Parser.parseAndValidateTaskIndex(words, taskList);
         Task removedTask = taskList.delete(taskToRemove);
 
         int remaining = taskList.getSize();
         Printer.printIndent(String.format(
                 "Ugh, fine, I've thrown out this task:\n    %s\nNow you have %d task%s left in your list.",
                 removedTask, remaining, remaining == 1 ? "" : "s"));
-    }
-
-    /**
-     * Parses and validates `words` (expects exactly [command, "<number>"]) into a
-     * one-indexed task number. Shared by mark/unmark/delete, whose argument shape
-     * is identical - only what happens to the referenced task differs.
-     */
-    private static int parseAndValidateTaskIndex(String[] words, TaskList taskList) throws NiaProcessorException {
-        if (words.length != 2) {
-            throw new IncorrectTaskIndexArgumentCountException(words[0]);
-        }
-
-        int taskIndex;
-        try {
-            taskIndex = Integer.parseInt(words[1]);
-        } catch (NumberFormatException e) {
-            throw new NonNumericTaskIndexException(words[1]);
-        }
-
-        if (taskList.isNotValidIndex(taskIndex)) {
-            throw new InvalidTaskIndexException(taskIndex, taskList.getSize());
-        }
-        return taskIndex;
     }
 
     /**

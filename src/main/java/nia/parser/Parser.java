@@ -1,9 +1,14 @@
 package nia.parser;
 
 import nia.exceptions.EmptyTodoDescriptionException;
+import nia.exceptions.IncorrectTaskIndexArgumentCountException;
+import nia.exceptions.InvalidTaskIndexException;
 import nia.exceptions.MissingDeadlineFieldsException;
 import nia.exceptions.MissingEventFieldsException;
 import nia.exceptions.NiaParserException;
+import nia.exceptions.NiaProcessorException;
+import nia.exceptions.NonNumericTaskIndexException;
+import nia.tasks.TaskList;
 
 /**
  * Turns raw input text into a clean, canonical array of words for Processor.
@@ -106,5 +111,28 @@ public class Parser {
             throw new MissingEventFieldsException();
         }
         return new String[]{command, description, from, to};
+    }
+
+    /**
+     * Parses and validates `words` (expects exactly [command, "<number>"]) into a
+     * one-indexed task number. Shared by mark/unmark/delete, whose argument shape
+     * is identical - only what happens to the referenced task differs.
+     */
+    public static int parseAndValidateTaskIndex(String[] words, TaskList taskList) throws NiaProcessorException {
+        if (words.length != 2) {
+            throw new IncorrectTaskIndexArgumentCountException(words[0]);
+        }
+
+        int taskIndex;
+        try {
+            taskIndex = Integer.parseInt(words[1]);
+        } catch (NumberFormatException e) {
+            throw new NonNumericTaskIndexException(words[1]);
+        }
+
+        if (taskList.isNotValidIndex(taskIndex)) {
+            throw new InvalidTaskIndexException(taskIndex, taskList.getSize());
+        }
+        return taskIndex;
     }
 }
