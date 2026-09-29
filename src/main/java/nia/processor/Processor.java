@@ -25,7 +25,7 @@ public class Processor {
             case "bye":
                 return false;
             case "list":
-                handleList(taskList);
+                handleList(words, taskList);
                 return true;
             case "mark":
             case "unmark":
@@ -49,16 +49,28 @@ public class Processor {
     }
 
     /**
-     * Prints every task in taskList, or a placeholder message if it's empty.
+     * Prints every task in taskList, optionally filtered to one type by words[1]
+     * (a tag from Parser.parseList - "T"/"D"/"E"). Indices printed are always the
+     * task's position in the full list, even when filtered, so they stay valid for
+     * mark/unmark/delete.
      */
-    private static void handleList(TaskList taskList) {
+    private static void handleList(String[] words, TaskList taskList) {
+        String filterTag = words.length > 1 ? words[1] : null;
         if (taskList.isEmpty()) {
             Printer.printIndent("Nothing here...");
             return;
         }
+        boolean printedAny = false;
         for (int i = 1; i <= taskList.getSize(); i++) {
             Task task = taskList.getTask(i);
+            if (filterTag != null && !task.getTag().equals(filterTag)) {
+                continue;
+            }
             Printer.printIndent(String.format("%d. %s", i, task));
+            printedAny = true;
+        }
+        if (!printedAny) {
+            Printer.printIndent("Nothing here...");
         }
     }
 
