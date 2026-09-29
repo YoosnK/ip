@@ -8,6 +8,7 @@ import java.util.Scanner;
 public class InputReader {
     private static final Scanner SCANNER = new Scanner(System.in);
 
+    /** Reads and returns the next line typed by the user, unmodified. */
     public static String getUserInput() {
         return SCANNER.nextLine();
     }
