@@ -15,11 +15,13 @@ package nia.exceptions;
 public abstract class NiaException extends Exception {
     private final String voiceline;
 
+    /** Creates a NiaException carrying both a technical debugMessage and Nia's in-character voiceline. */
     NiaException(String debugMessage, String voiceline) {
         super(debugMessage);
         this.voiceline = voiceline;
     }
 
+    /** Returns Nia's in-character line for the user to read. */
     public String getVoiceline() {
         return voiceline;
     }

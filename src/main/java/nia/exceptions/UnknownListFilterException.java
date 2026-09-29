@@ -2,6 +2,7 @@ package nia.exceptions;
 
 /** Thrown when "list" is given a filter token that isn't a recognized todo/deadline/event filter. */
 public class UnknownListFilterException extends NiaParserException {
+    /** Creates the exception for filterToken, the unrecognized list filter that was given. */
     public UnknownListFilterException(String filterToken) {
         super(
                 String.format(

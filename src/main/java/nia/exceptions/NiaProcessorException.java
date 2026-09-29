@@ -7,6 +7,7 @@ package nia.exceptions;
  * to one specific processing failure.
  */
 public abstract class NiaProcessorException extends NiaException {
+    /** Creates a processing-stage failure carrying debugMessage and voiceline. */
     NiaProcessorException(String debugMessage, String voiceline) {
         super(debugMessage, voiceline);
     }
