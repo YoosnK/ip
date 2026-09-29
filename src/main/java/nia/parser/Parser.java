@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import nia.exceptions.EmptyFindKeywordException;
 import nia.exceptions.EmptyTodoDescriptionException;
 import nia.exceptions.IncorrectTaskIndexArgumentCountException;
 import nia.exceptions.InvalidDateTimeException;
@@ -14,6 +15,7 @@ import nia.exceptions.MissingDeadlineFieldsException;
 import nia.exceptions.MissingEventFieldsException;
 import nia.exceptions.NiaParserException;
 import nia.exceptions.NonNumericTaskIndexException;
+import nia.exceptions.UnknownListFilterException;
 import nia.tasks.TaskList;
 
 /**
@@ -94,6 +96,10 @@ public class Parser {
                 return parseDeadline(command, rest);
             case "event":
                 return parseEvent(command, rest);
+            case "list":
+                return parseList(command, rest);
+            case "find":
+                return parseFind(command, rest);
             default:
                 String[] words = trimmed.split("\\s+");
                 words[0] = command;
@@ -152,6 +158,46 @@ public class Parser {
         String canonicalFrom = formatCanonical(parseDateTime(from));
         String canonicalTo = formatCanonical(parseDateTime(to));
         return new String[]{command, description, canonicalFrom, canonicalTo};
+    }
+
+    /**
+     * Splits `rest` (empty, or a "t/"/"d/"/"e/"-prefixed token) into an optional list
+     * filter. An empty `rest` means "no filter" (list everything); otherwise the token
+     * is resolved to the task tag ("T"/"D"/"E") it selects.
+     */
+    private static String[] parseList(String command, String rest) throws UnknownListFilterException {
+        if (rest.isEmpty()) {
+            return new String[]{command};
+        }
+        return new String[]{command, resolveListFilterTag(rest)};
+    }
+
+    /**
+     * Maps a list filter token to the task tag ("T"/"D"/"E") it selects, e.g.
+     * "t/task" -> "T", "d/dl" or "d/deadline" -> "D", "e/event" -> "E". Any other
+     * token is rejected rather than silently matching nothing.
+     */
+    private static String resolveListFilterTag(String filterToken) throws UnknownListFilterException {
+        switch (filterToken) {
+            case "t/task":
+            case "t/todo":
+                return "T";
+            case "d/dl":
+            case "d/deadline":
+                return "D";
+            case "e/event":
+                return "E";
+            default:
+                throw new UnknownListFilterException(filterToken);
+        }
+    }
+
+    /** Rejects a blank keyword rather than letting an empty find match everything. */
+    private static String[] parseFind(String command, String rest) throws EmptyFindKeywordException {
+        if (rest.isEmpty()) {
+            throw new EmptyFindKeywordException();
+        }
+        return new String[]{command, rest};
     }
 
     /**

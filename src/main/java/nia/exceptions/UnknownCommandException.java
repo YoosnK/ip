@@ -5,7 +5,7 @@ public class UnknownCommandException extends NiaProcessorException {
     public UnknownCommandException(String commandWord) {
         super(
                 String.format(
-                        "[Debug] Unrecognized command \"%s\". Valid commands: bye, list, mark, unmark, todo, deadline, event",
+                        "[Debug] Unrecognized command \"%s\". Valid commands: bye, list, mark, unmark, todo, deadline, event, find",
                         commandWord),
                 "Hm? I don't know what that means.");
     }
