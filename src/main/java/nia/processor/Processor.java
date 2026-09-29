@@ -105,18 +105,20 @@ public class Processor {
 
     /**
      * Adds a Deadline from `words` = ["deadline", description, by]. Parser
-     * guarantees both fields are non-blank before words ever reaches here.
+     * guarantees both fields are non-blank and by is already in canonical
+     * date-time format before words ever reaches here.
      */
     private static void handleAddDeadline(String[] words, TaskList taskList) {
-        addTask(new Deadline(words[1], words[2]), taskList);
+        addTask(new Deadline(words[1], Parser.parseCanonical(words[2])), taskList);
     }
 
     /**
      * Adds an Event from `words` = ["event", description, from, to]. Parser
-     * guarantees all three fields are non-blank before words ever reaches here.
+     * guarantees all three fields are non-blank and from/to are already in
+     * canonical date-time format before words ever reaches here.
      */
     private static void handleAddEvent(String[] words, TaskList taskList) {
-        addTask(new Event(words[1], words[2], words[3]), taskList);
+        addTask(new Event(words[1], Parser.parseCanonical(words[2]), Parser.parseCanonical(words[3])), taskList);
     }
 
     /** Adds `task` to taskList. */

@@ -3,10 +3,12 @@ package nia.storage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import nia.parser.Parser;
 import nia.tasks.Deadline;
 import nia.tasks.Event;
 import nia.tasks.Task;
@@ -81,8 +83,8 @@ public class Storage {
 
             Task task = switch (tag) {
                 case "T" -> new Todo(description);
-                case "D" -> new Deadline(description, fields[3]);
-                case "E" -> new Event(description, fields[3], fields[4]);
+                case "D" -> new Deadline(description, Parser.parseCanonical(fields[3]));
+                case "E" -> new Event(description, Parser.parseCanonical(fields[3]), Parser.parseCanonical(fields[4]));
                 default -> throw new IllegalArgumentException("unknown task tag '" + tag + "'");
             };
 
@@ -90,7 +92,7 @@ public class Storage {
                 task.markAsDone();
             }
             return task;
-        } catch (ArrayIndexOutOfBoundsException | IllegalArgumentException e) {
+        } catch (ArrayIndexOutOfBoundsException | IllegalArgumentException | DateTimeParseException e) {
             Printer.printIndentedError("Skipping corrupted save line: " + line);
             return null;
         }

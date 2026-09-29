@@ -1,14 +1,25 @@
 package nia.tasks;
 
+import java.time.LocalDateTime;
+import nia.parser.Parser;
+
 public class Event extends Task{
 
-    protected String from;
-    protected String to;
+    protected LocalDateTime from;
+    protected LocalDateTime to;
 
-    public Event(String description, String from, String to) {
+    public Event(String description, LocalDateTime from, LocalDateTime to) {
         super(description);
         this.from = from;
         this.to = to;
+    }
+
+    public LocalDateTime getFrom() {
+        return from;
+    }
+
+    public LocalDateTime getTo() {
+        return to;
     }
 
     @Override
@@ -18,11 +29,13 @@ public class Event extends Task{
 
     @Override
     public String toString() {
-        return "[%s]".formatted(this.getTag()) + super.toString() + " (from: %s; to: %s)".formatted(this.from, this.to);
+        return "[%s]".formatted(this.getTag()) + super.toString()
+                + " (from: %s; to: %s)".formatted(Parser.formatDisplay(this.from), Parser.formatDisplay(this.to));
     }
 
     @Override
     public String toSaveFormat() {
-        return super.toSaveFormat() + SAVE_DELIMITER + this.from + SAVE_DELIMITER + this.to;
+        return super.toSaveFormat() + SAVE_DELIMITER + Parser.formatCanonical(this.from)
+                + SAVE_DELIMITER + Parser.formatCanonical(this.to);
     }
 }
