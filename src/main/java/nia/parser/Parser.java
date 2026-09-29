@@ -1,9 +1,20 @@
 package nia.parser;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 import nia.exceptions.EmptyTodoDescriptionException;
+import nia.exceptions.IncorrectTaskIndexArgumentCountException;
+import nia.exceptions.InvalidDateTimeException;
+import nia.exceptions.InvalidTaskIndexException;
 import nia.exceptions.MissingDeadlineFieldsException;
 import nia.exceptions.MissingEventFieldsException;
 import nia.exceptions.NiaParserException;
+import nia.exceptions.NonNumericTaskIndexException;
+import nia.tasks.TaskList;
 
 /**
  * Turns raw input text into a clean, canonical array of words for Processor.
@@ -26,6 +37,29 @@ public class Parser {
             "dl", "deadline",
             "ls", "list",
             "d", "delete"
+    );
+
+    /** The one format Nia's save file uses - unambiguous, always includes a time. */
+    private static final DateTimeFormatter CANONICAL_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
+
+    /** Friendly display format for task listings, e.g. "Oct 15 2019, 6:00pm". */
+    private static final DateTimeFormatter DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("MMM d yyyy, h:mma");
+
+    /** Time assumed when the user gives a date with no time component. */
+    private static final LocalTime DEFAULT_TIME = LocalTime.of(23, 59);
+
+    /** Date-time formats accepted from user input: "-" or "/" date separator, "HHmm" or "HH:mm" time. */
+    private static final List<DateTimeFormatter> DATE_TIME_FORMATS = List.of(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd HHmm"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+    );
+
+    /** Date-only formats accepted from user input; time defaults to DEFAULT_TIME. */
+    private static final List<DateTimeFormatter> DATE_ONLY_FORMATS = List.of(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd")
     );
 
     /**
@@ -75,8 +109,13 @@ public class Parser {
         return new String[]{command, rest};
     }
 
-    /** Splits `rest` on "/by" into description and by-fields; throws if either comes back blank. */
-    private static String[] parseDeadline(String command, String rest) throws MissingDeadlineFieldsException {
+    /**
+     * Splits `rest` on "/by" into description and by-fields; throws if either comes
+     * back blank, or if by isn't a date-time in any accepted format. The returned by
+     * is always in Parser's canonical format, so every later stage (Processor, Task,
+     * Storage) can trust it's already valid instead of re-validating.
+     */
+    private static String[] parseDeadline(String command, String rest) throws NiaParserException {
         int byIndex = rest.indexOf("/by");
         String description = byIndex == -1 ? rest.trim() : rest.substring(0, byIndex).trim();
         String by = byIndex == -1 ? "" : rest.substring(byIndex + "/by".length()).trim();
@@ -84,11 +123,16 @@ public class Parser {
         if (description.isEmpty() || by.isEmpty()) {
             throw new MissingDeadlineFieldsException();
         }
-        return new String[]{command, description, by};
+        String canonicalBy = formatCanonical(parseDateTime(by));
+        return new String[]{command, description, canonicalBy};
     }
 
-    /** Splits `rest` on "/from" and "/to" into description, from, and to; throws if any comes back blank. */
-    private static String[] parseEvent(String command, String rest) throws MissingEventFieldsException {
+    /**
+     * Splits `rest` on "/from" and "/to" into description, from, and to; throws if any
+     * comes back blank, or if from/to isn't a date-time in any accepted format. Both
+     * are returned in Parser's canonical format, for the same reason as parseDeadline's by.
+     */
+    private static String[] parseEvent(String command, String rest) throws NiaParserException {
         int fromIndex = rest.indexOf("/from");
         int toIndex = rest.indexOf("/to");
 
@@ -105,6 +149,74 @@ public class Parser {
         if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
             throw new MissingEventFieldsException();
         }
-        return new String[]{command, description, from, to};
+        String canonicalFrom = formatCanonical(parseDateTime(from));
+        String canonicalTo = formatCanonical(parseDateTime(to));
+        return new String[]{command, description, canonicalFrom, canonicalTo};
+    }
+
+    /**
+     * Parses and validates `words` (expects exactly [command, "<number>"]) into a
+     * one-indexed task number. Shared by mark/unmark/delete, whose argument shape
+     * is identical - only what happens to the referenced task differs.
+     */
+    public static int parseAndValidateTaskIndex(String[] words, TaskList taskList) throws NiaParserException {
+        if (words.length != 2) {
+            throw new IncorrectTaskIndexArgumentCountException(words[0]);
+        }
+
+        int taskIndex;
+        try {
+            taskIndex = Integer.parseInt(words[1]);
+        } catch (NumberFormatException e) {
+            throw new NonNumericTaskIndexException(words[1]);
+        }
+
+        if (taskList.isNotValidIndex(taskIndex)) {
+            throw new InvalidTaskIndexException(taskIndex, taskList.getSize());
+        }
+        return taskIndex;
+    }
+
+    /**
+     * Parses `raw` (already trimmed) against every accepted date-time format in
+     * turn - "-" or "/" as the date separator, "HHmm" or "HH:mm" as the time.
+     * A date given with no time component defaults to 23:59 that day. Shared by
+     * parseDeadline/parseEvent, whose "/by"/"/from"/"/to" fields all accept the
+     * same formats.
+     */
+    public static LocalDateTime parseDateTime(String raw) throws InvalidDateTimeException {
+        for (DateTimeFormatter format : DATE_TIME_FORMATS) {
+            try {
+                return LocalDateTime.parse(raw, format);
+            } catch (DateTimeParseException ignored) {
+                // Not this format - try the next one.
+            }
+        }
+        for (DateTimeFormatter format : DATE_ONLY_FORMATS) {
+            try {
+                return LocalDate.parse(raw, format).atTime(DEFAULT_TIME);
+            } catch (DateTimeParseException ignored) {
+                // Not this format - try the next one.
+            }
+        }
+        throw new InvalidDateTimeException(raw);
+    }
+
+    /** Formats `dateTime` the way Nia's save file persists it - lossless, machine-parseable. */
+    public static String formatCanonical(LocalDateTime dateTime) {
+        return dateTime.format(CANONICAL_FORMATTER);
+    }
+
+    /** Parses a string that's already in the save file's canonical format back into a LocalDateTime. */
+    public static LocalDateTime parseCanonical(String canonical) {
+        return LocalDateTime.parse(canonical, CANONICAL_FORMATTER);
+    }
+
+    /** Formats `dateTime` for the user to read, e.g. "Oct 15 2019, 6:00pm". */
+    public static String formatDisplay(LocalDateTime dateTime) {
+        // DateTimeFormatter's "a" pattern renders AM/PM in uppercase regardless of
+        // case in the pattern string itself, so lowercase it afterward to match style.
+        String formatted = dateTime.format(DISPLAY_FORMATTER);
+        return formatted.replace("AM", "am").replace("PM", "pm");
     }
 }

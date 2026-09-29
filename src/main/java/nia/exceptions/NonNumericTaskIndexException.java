@@ -1,7 +1,7 @@
 package nia.exceptions;
 
 /** Thrown when "mark"/"unmark"'s argument isn't a number. */
-public class NonNumericTaskIndexException extends NiaProcessorException {
+public class NonNumericTaskIndexException extends NiaParserException {
     public NonNumericTaskIndexException(String badArgument) {
         super(
                 String.format(

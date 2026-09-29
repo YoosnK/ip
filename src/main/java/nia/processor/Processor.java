@@ -1,10 +1,8 @@
 package nia.processor;
 
-import nia.exceptions.IncorrectTaskIndexArgumentCountException;
-import nia.exceptions.InvalidTaskIndexException;
-import nia.exceptions.NiaProcessorException;
-import nia.exceptions.NonNumericTaskIndexException;
+import nia.exceptions.NiaException;
 import nia.exceptions.UnknownCommandException;
+import nia.parser.Parser;
 import nia.tasks.Deadline;
 import nia.tasks.Event;
 import nia.tasks.Task;
@@ -20,7 +18,7 @@ import nia.ui.Printer;
 public class Processor {
 
     /** Dispatches on words[0]. Returns false when the program should stop running. */
-    public static boolean process(String[] words, TaskList taskList) throws NiaProcessorException {
+    public static boolean process(String[] words, TaskList taskList) throws NiaException {
         String command = words[0];
 
         switch (command) {
@@ -71,8 +69,8 @@ public class Processor {
      * this is what keeps this method flat instead of nesting ifs inside ifs.
      */
     private static void handleMarkOrUnmark(String[] words, TaskList taskList, boolean markAsDone)
-            throws NiaProcessorException {
-        int taskToChange = parseAndValidateTaskIndex(words, taskList);
+            throws NiaException {
+        int taskToChange = Parser.parseAndValidateTaskIndex(words, taskList);
 
         if (markAsDone) {
             taskList.getTask(taskToChange).markAsDone();
@@ -87,37 +85,14 @@ public class Processor {
      * Deletes the task at `words` = ["delete", "<number>"]. Prints the removed task
      * and the resulting list size, matching the tone of the "add" confirmation.
      */
-    private static void handleDelete(String[] words, TaskList taskList) throws NiaProcessorException {
-        int taskToRemove = parseAndValidateTaskIndex(words, taskList);
+    private static void handleDelete(String[] words, TaskList taskList) throws NiaException {
+        int taskToRemove = Parser.parseAndValidateTaskIndex(words, taskList);
         Task removedTask = taskList.delete(taskToRemove);
 
         int remaining = taskList.getSize();
         Printer.printIndent(String.format(
                 "Ugh, fine, I've thrown out this task:\n    %s\nNow you have %d task%s left in your list.",
                 removedTask, remaining, remaining == 1 ? "" : "s"));
-    }
-
-    /**
-     * Parses and validates `words` (expects exactly [command, "<number>"]) into a
-     * one-indexed task number. Shared by mark/unmark/delete, whose argument shape
-     * is identical - only what happens to the referenced task differs.
-     */
-    private static int parseAndValidateTaskIndex(String[] words, TaskList taskList) throws NiaProcessorException {
-        if (words.length != 2) {
-            throw new IncorrectTaskIndexArgumentCountException(words[0]);
-        }
-
-        int taskIndex;
-        try {
-            taskIndex = Integer.parseInt(words[1]);
-        } catch (NumberFormatException e) {
-            throw new NonNumericTaskIndexException(words[1]);
-        }
-
-        if (taskList.isNotValidIndex(taskIndex)) {
-            throw new InvalidTaskIndexException(taskIndex, taskList.getSize());
-        }
-        return taskIndex;
     }
 
     /**
@@ -130,18 +105,20 @@ public class Processor {
 
     /**
      * Adds a Deadline from `words` = ["deadline", description, by]. Parser
-     * guarantees both fields are non-blank before words ever reaches here.
+     * guarantees both fields are non-blank and by is already in canonical
+     * date-time format before words ever reaches here.
      */
     private static void handleAddDeadline(String[] words, TaskList taskList) {
-        addTask(new Deadline(words[1], words[2]), taskList);
+        addTask(new Deadline(words[1], Parser.parseCanonical(words[2])), taskList);
     }
 
     /**
      * Adds an Event from `words` = ["event", description, from, to]. Parser
-     * guarantees all three fields are non-blank before words ever reaches here.
+     * guarantees all three fields are non-blank and from/to are already in
+     * canonical date-time format before words ever reaches here.
      */
     private static void handleAddEvent(String[] words, TaskList taskList) {
-        addTask(new Event(words[1], words[2], words[3]), taskList);
+        addTask(new Event(words[1], Parser.parseCanonical(words[2]), Parser.parseCanonical(words[3])), taskList);
     }
 
     /** Adds `task` to taskList. */

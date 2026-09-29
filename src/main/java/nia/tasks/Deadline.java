@@ -1,12 +1,19 @@
 package nia.tasks;
 
+import java.time.LocalDateTime;
+import nia.parser.Parser;
+
 public class Deadline extends Task{
 
-    protected String by;
+    protected LocalDateTime by;
 
-    public Deadline(String description, String by) {
+    public Deadline(String description, LocalDateTime by) {
         super(description);
         this.by = by;
+    }
+
+    public LocalDateTime getBy() {
+        return by;
     }
 
     @Override
@@ -16,11 +23,7 @@ public class Deadline extends Task{
 
     @Override
     public String toString() {
-        return "[%s]".formatted(this.getTag()) + super.toString() + " (by: %s)".formatted(this.by);
-    }
-
-    @Override
-    public String toSaveFormat() {
-        return super.toSaveFormat() + SAVE_DELIMITER + this.by;
+        return "[%s]".formatted(this.getTag()) + super.toString()
+                + " (by: %s)".formatted(Parser.formatDisplay(this.by));
     }
 }

@@ -5,9 +5,6 @@ package nia.tasks;
  * New tasks start as not done.
  */
 public abstract class Task {
-    /** Delimiter between fields in the on-disk save format, e.g. "T|~|0|~|description". */
-    public static final String SAVE_DELIMITER = "|~|";
-
     protected String description;
     protected boolean isDone;
 
@@ -44,10 +41,5 @@ public abstract class Task {
 
     public void markAsNotDone() {
         this.isDone = false;
-    }
-
-    /** Serializes this task to one line of the save file, e.g. "T|~|0|~|description". */
-    public String toSaveFormat() {
-        return getTag() + SAVE_DELIMITER + (isDone ? "1" : "0") + SAVE_DELIMITER + description;
     }
 }
