@@ -46,6 +46,9 @@ public class Processor {
             case "find":
                 handleFind(words, taskList);
                 return true;
+            case "help":
+                handleHelp();
+                return true;
             default:
                 throw new UnknownCommandException(command);
         }
@@ -161,5 +164,23 @@ public class Processor {
     private static void addTask(Task task, TaskList taskList) {
         taskList.add(task);
         Printer.printIndent("I've added the task \"" + task + "\" to your task list");
+    }
+
+    /** Prints a summary of every command Processor recognizes and how to use it. */
+    private static void handleHelp() {
+        Printer.printIndent(String.join("\n",
+                "Here's everything I can do:",
+                "  list [t | d | e]                 - show all tasks, optionally filtered by type "
+                        + "(t=todo, d=deadline, e=event)",
+                "  todo <description>               - add a todo",
+                "  deadline <description> /by <when> - add a deadline",
+                "  event <description> /from <when> /to <when> - add an event",
+                "  mark <number>                    - mark a task as done",
+                "  unmark <number>                  - mark a task as not done",
+                "  delete <number>                  - delete a task",
+                "  find <keyword>                   - search task descriptions",
+                "  help                              - show this message",
+                "  bye                               - exit Nia",
+                "<when> accepts yyyy-MM-dd, optionally followed by HHmm or HH:mm."));
     }
 }
