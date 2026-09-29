@@ -2,6 +2,7 @@ package nia.exceptions;
 
 /** Thrown when the command word isn't one Processor recognizes. */
 public class UnknownCommandException extends NiaProcessorException {
+    /** Creates the exception for commandWord, the unrecognized command that was given. */
     public UnknownCommandException(String commandWord) {
         super(
                 String.format(

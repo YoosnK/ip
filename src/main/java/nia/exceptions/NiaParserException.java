@@ -6,6 +6,7 @@ package nia.exceptions;
  * subclass corresponds to one specific parse failure.
  */
 public abstract class NiaParserException extends NiaException {
+    /** Creates a parser-stage failure carrying debugMessage and voiceline. */
     NiaParserException(String debugMessage, String voiceline) {
         super(debugMessage, voiceline);
     }

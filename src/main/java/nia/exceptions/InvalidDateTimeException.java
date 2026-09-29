@@ -2,6 +2,7 @@ package nia.exceptions;
 
 /** Thrown when a "/by", "/from", or "/to" value doesn't match any accepted date-time format. */
 public class InvalidDateTimeException extends NiaParserException {
+    /** Creates the exception for badValue, the date-time string that couldn't be parsed. */
     public InvalidDateTimeException(String badValue) {
         super(
                 String.format(

@@ -48,18 +48,22 @@ public class VoicelineManager {
         return null;
     }
 
+    /** Returns Nia's ASCII-art banner. */
     public static String getBanner() {
         return BANNER;
     }
 
+    /** Returns a random opening voiceline, for when Nia starts up. */
     public static String getStartingLine() {
         return pickRandomLine(STARTING_LINES);
     }
 
+    /** Returns a random voiceline for after a command has been carried out. */
     static String getAfterRequestLine() {
         return pickRandomLine(POST_ACTION_LINES);
     }
 
+    /** Returns a random farewell voiceline, for when Nia exits. */
     public static String getEndingLine() {
         return pickRandomLine(ENDING_LINES);
     }
