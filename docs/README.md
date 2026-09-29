@@ -93,6 +93,61 @@ Example: `list`
 
 If there are no tasks yet, Nia prints `Nothing here...` instead.
 
+### Filtering the list by type
+
+Add a filter word after `list` to show only todos, deadlines, or events.
+Indices still reflect each task's position in the full list, so they stay
+valid for `mark`/`unmark`/`delete`.
+
+Example: `list <filter>`, where `<filter>` is one of:
+
+| Filter | Shows |
+|---|---|
+| `t`, `todo` | todos only |
+| `d`, `dl`, `deadline` | deadlines only |
+| `e`, `event` | events only |
+
+```
+list t
+```
+
+```
+1. [T][ ] borrow book
+```
+
+## Finding tasks
+
+Shows every task whose description contains a keyword (case-insensitive).
+
+Example: `find <keyword>`
+
+```
+find book
+```
+
+```
+1. [T][ ] borrow book
+2. [D][ ] return book (by: Oct 15 2019, 6:00pm)
+```
+
+If nothing matches, Nia prints `Nothing here...` instead.
+
+## Deleting a task
+
+Removes a task by its number in `list`.
+
+Example: `delete <task number>`
+
+```
+delete 1
+```
+
+```
+Ugh, fine, I've thrown out this task:
+    [T][ ] borrow book
+Now you have 2 tasks left in your list.
+```
+
 ## Marking / unmarking a task
 
 Marks a task done, or reverts it back to not done, by its number in `list`.
@@ -115,6 +170,12 @@ unmark 1
 Marked 1 as not done
 ```
 
+## Getting help
+
+Prints a quick-reference summary of every command.
+
+Example: `help`
+
 ## Exiting
 
 Ends the program.
@@ -130,3 +191,5 @@ A few shorter or alternate spellings work in place of the full command word:
 | `close`, `exit`, `quit` | `bye` |
 | `td` | `todo` |
 | `dl` | `deadline` |
+| `ls` | `list` |
+| `d` | `delete` |
