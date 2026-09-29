@@ -161,9 +161,9 @@ public class Parser {
     }
 
     /**
-     * Splits `rest` (empty, or a "t/"/"d/"/"e/"-prefixed token) into an optional list
-     * filter. An empty `rest` means "no filter" (list everything); otherwise the token
-     * is resolved to the task tag ("T"/"D"/"E") it selects.
+     * Splits `rest` (empty, or a filter token such as "t" or "todo") into
+     * an optional list filter. An empty `rest` means "no filter" (list everything);
+     * otherwise the token is resolved to the task tag ("T"/"D"/"E") it selects.
      */
     private static String[] parseList(String command, String rest) throws UnknownListFilterException {
         if (rest.isEmpty()) {
@@ -174,18 +174,21 @@ public class Parser {
 
     /**
      * Maps a list filter token to the task tag ("T"/"D"/"E") it selects, e.g.
-     * "t/task" -> "T", "d/dl" or "d/deadline" -> "D", "e/event" -> "E". Any other
-     * token is rejected rather than silently matching nothing.
+     * "t"/"todo" -> "T", "d"/"dl"/"deadline" -> "D", "e"/"event" -> "E",
+     * matched case-insensitively. Any other token is rejected rather than
+     * silently matching nothing.
      */
     private static String resolveListFilterTag(String filterToken) throws UnknownListFilterException {
-        switch (filterToken) {
-            case "t/task":
-            case "t/todo":
+        switch (filterToken.toLowerCase()) {
+            case "t":
+            case "todo":
                 return "T";
-            case "d/dl":
-            case "d/deadline":
+            case "d":
+            case "dl":
+            case "deadline":
                 return "D";
-            case "e/event":
+            case "e":
+            case "event":
                 return "E";
             default:
                 throw new UnknownListFilterException(filterToken);

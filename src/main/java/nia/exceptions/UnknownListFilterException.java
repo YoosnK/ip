@@ -1,12 +1,12 @@
 package nia.exceptions;
 
-/** Thrown when "list" is given a filter token that isn't t/task, d/dl, d/deadline, or e/event. */
+/** Thrown when "list" is given a filter token that isn't a recognized todo/deadline/event filter. */
 public class UnknownListFilterException extends NiaParserException {
     public UnknownListFilterException(String filterToken) {
         super(
                 String.format(
-                        "[Debug] Unrecognized list filter \"%s\". Valid filters: t/task, d/dl, d/deadline, e/event",
+                        "[Debug] Unrecognized list filter \"%s\". Valid filters: t/todo, d/dl/deadline, e/event",
                         filterToken),
-                "Filter by what now? I only know t/task, d/dl (or d/deadline), and e/event.");
+                "Filter by what now? I only know t/todo, d/dl/deadline, and e/event.");
     }
 }
