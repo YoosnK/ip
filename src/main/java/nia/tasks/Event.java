@@ -32,10 +32,4 @@ public class Event extends Task{
         return "[%s]".formatted(this.getTag()) + super.toString()
                 + " (from: %s; to: %s)".formatted(Parser.formatDisplay(this.from), Parser.formatDisplay(this.to));
     }
-
-    @Override
-    public String toSaveFormat() {
-        return super.toSaveFormat() + SAVE_DELIMITER + Parser.formatCanonical(this.from)
-                + SAVE_DELIMITER + Parser.formatCanonical(this.to);
-    }
 }

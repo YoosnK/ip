@@ -1,33 +1,43 @@
 package nia.storage;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
-import nia.parser.Parser;
-import nia.tasks.Deadline;
-import nia.tasks.Event;
 import nia.tasks.Task;
 import nia.tasks.TaskList;
-import nia.tasks.Todo;
 import nia.ui.Printer;
 
 /**
- * Saves and loads a TaskList to/from a flat text file, so tasks survive between runs.
- * Each line is one task in Task#toSaveFormat()'s pipe-delimited format, e.g.
- * "D|~|1|~|finish math homework|~|Wednesday 6PM". The whole file is rewritten on every
- * save rather than patched incrementally - simplest correct approach at this scale.
+ * Saves and loads a TaskList to/from a JSON file, so tasks survive between runs.
+ * The whole file is one JSON array of tasks, e.g.
+ * [{"type":"deadline","description":"finish math homework","isDone":true,"by":"2024-03-11T18:00:00"}].
+ * Task's abstractness and LocalDateTime (a type Gson has no built-in adapter for)
+ * both need custom handling - see TaskJsonAdapter and LocalDateTimeJsonAdapter.
+ * The whole file is rewritten on every save rather than patched incrementally -
+ * simplest correct approach at this scale.
  */
 public class Storage {
-    private static final String DATA_FILE_PATH = "./data/nia.txt";
-    private static final Pattern SPLIT_PATTERN = Pattern.compile(Pattern.quote(Task.SAVE_DELIMITER));
+    private static final String DATA_FILE_PATH = "./data/nia.json";
+    private static final Type TASK_LIST_TYPE = new TypeToken<List<Task>>(){}.getType();
 
-    /** Loads tasks from disk into a new TaskList. Never throws: a missing file yields
-     * an empty list, and a corrupted line is skipped with a warning. */
+    private static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(Task.class, new TaskJsonAdapter())
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeJsonAdapter())
+            .setPrettyPrinting()
+            .create();
+
+    /** Loads tasks from disk into a new TaskList. Never throws: a missing or
+     * corrupted file yields an empty list, with a warning for the latter. */
     public static TaskList load() {
         TaskList taskList = new TaskList();
         Path path = Path.of(DATA_FILE_PATH);
@@ -37,15 +47,23 @@ public class Storage {
         }
 
         try {
-            List<String> lines = Files.readAllLines(path);
-            for (String line : lines) {
-                Task task = parseLine(line);
-                if (task != null) {
+            String json = Files.readString(path);
+            List<Task> tasks = GSON.fromJson(json, TASK_LIST_TYPE);
+            if (tasks != null) {
+                for (Task task : tasks) {
                     taskList.add(task);
                 }
             }
         } catch (IOException e) {
             Printer.printIndentedError("Couldn't read saved tasks (" + e.getMessage() + "), starting fresh.");
+        } catch (JsonParseException | DateTimeParseException | NullPointerException e) {
+            // JsonParseException covers both Gson's own syntax errors and the "unknown
+            // type" case TaskJsonAdapter throws; DateTimeParseException is a separate
+            // hierarchy (extends RuntimeException directly, not caught by the above) -
+            // thrown by LocalDateTimeJsonAdapter when a by/from/to string isn't valid
+            // ISO-8601; NullPointerException covers a task object missing an expected
+            // field entirely (e.g. hand-edited), which TaskJsonAdapter doesn't guard.
+            Printer.printIndentedError("Save file is corrupted, starting fresh.");
         }
 
         return taskList;
@@ -59,52 +77,13 @@ public class Storage {
                 Files.createDirectories(path.getParent());
             }
 
-            List<String> lines = new ArrayList<>();
+            List<Task> tasks = new ArrayList<>();
             for (int i = 1; i <= taskList.getSize(); i++) {
-                lines.add(taskList.getTask(i).toSaveFormat());
+                tasks.add(taskList.getTask(i));
             }
-            Files.write(path, lines);
+            Files.writeString(path, GSON.toJson(tasks, TASK_LIST_TYPE));
         } catch (IOException e) {
             Printer.printIndentedError("Couldn't save tasks: " + e.getMessage());
         }
-    }
-
-    /** Parses one save-file line into a Task, or returns null (and warns) if it's malformed. */
-    private static Task parseLine(String line) {
-        if (line.isBlank()) {
-            return null;
-        }
-
-        String[] fields = SPLIT_PATTERN.split(line, -1);
-        try {
-            String tag = fields[0];
-            boolean isDone = parseDoneFlag(fields[1]);
-            String description = fields[2];
-
-            Task task = switch (tag) {
-                case "T" -> new Todo(description);
-                case "D" -> new Deadline(description, Parser.parseCanonical(fields[3]));
-                case "E" -> new Event(description, Parser.parseCanonical(fields[3]), Parser.parseCanonical(fields[4]));
-                default -> throw new IllegalArgumentException("unknown task tag '" + tag + "'");
-            };
-
-            if (isDone) {
-                task.markAsDone();
-            }
-            return task;
-        } catch (ArrayIndexOutOfBoundsException | IllegalArgumentException | DateTimeParseException e) {
-            Printer.printIndentedError("Skipping corrupted save line: " + line);
-            return null;
-        }
-    }
-
-    private static boolean parseDoneFlag(String field) {
-        if (field.equals("1")) {
-            return true;
-        }
-        if (field.equals("0")) {
-            return false;
-        }
-        throw new IllegalArgumentException("done flag must be 0 or 1, was '" + field + "'");
     }
 }
