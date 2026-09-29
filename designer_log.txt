@@ -145,3 +145,41 @@ class matches how parseAndValidateTaskIndex already lives there as a
 shared helper beyond the main parse() entry point - Deadline/Event and
 Storage call back into Parser for it rather than duplicating
 DateTimeFormatter patterns in three more places.
+
+7. Storage: pipe-delimited text -> JSON via Gson (implemented)
+
+Changed FROM Storage hand-parsing/formatting a pipe-delimited text file
+(Task.SAVE_DELIMITER = "|~|", e.g. "D|~|0|~|return book|~|2019-10-15 1800"),
+with each Task subclass owning a toSaveFormat() override and Storage.parseLine
+hand-splitting fields back out by position, TO:
+- Two new small Gson adapters in nia.storage: LocalDateTimeJsonAdapter
+  (Gson has no built-in support for java.time types - stores/reads plain
+  ISO-8601, e.g. "2019-10-15T18:00:00", via LocalDateTime's own
+  toString()/parse(), no custom pattern needed) and TaskJsonAdapter
+  (Gson can't infer which concrete subclass an abstract Task field
+  should become - adds a "type" field, "todo"/"deadline"/"event",
+  independent of the existing display-only getTag() "T"/"D"/"E").
+- Storage.load()/save() are now a single gson.fromJson/toJson call each
+  against data/nia.json (a JSON array of tasks), replacing parseLine,
+  parseDoneFlag, and SPLIT_PATTERN entirely.
+- Task.toSaveFormat()/SAVE_DELIMITER and Deadline/Event's toSaveFormat()
+  overrides removed - dead code once Gson's reflection-based
+  serialization replaced them.
+- No migration from the old data/nia.txt - same "start fresh on
+  incompatible save data" precedent set by change 6.
+- Storage.load()'s catch clause needed three exception types, not one:
+  JsonParseException (Gson's own syntax errors, and the "unknown type"
+  case TaskJsonAdapter throws - JsonSyntaxException alone would have
+  missed the latter), DateTimeParseException (a separate hierarchy,
+  same gap as change 6 hit), and NullPointerException (a task object
+  missing an expected field entirely, e.g. hand-edited) - caught as
+  genuine bugs during manual testing of a corrupted/hand-edited file,
+  not just hypotheticals.
+
+Reason: hand-rolled field-position parsing meant every new field touched
+three places (toSaveFormat, parseLine's switch, and keeping both in sync
+by position) with no compile-time check they agreed. Gson's reflection-
+based (de)serialization reads/writes fields by name, so Task only needs
+custom logic for the two things Gson genuinely can't infer on its own -
+which concrete subclass a bare Task is, and how to represent
+LocalDateTime - not for every individual field.
