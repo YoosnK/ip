@@ -32,31 +32,52 @@ I've added the task [[T][ ] borrow book] to your task list
 
 ## Adding a deadline
 
-Adds a task that needs to be done by a specific time.
+Adds a task that needs to be done by a specific date and time.
 
-Example: `deadline <description> /by <time>`
-
-```
-deadline return book /by Sunday
-```
+Example: `deadline <description> /by <date-time>`
 
 ```
-I've added the task [[D][ ] return book (by: Sunday)] to your task list
+deadline return book /by 2019-10-15 1800
+```
+
+```
+I've added the task [[D][ ] return book (by: Oct 15 2019, 6:00pm)] to your task list
 ```
 
 ## Adding an event
 
-Adds a task that starts and ends at specific times.
+Adds a task that starts and ends at specific dates and times.
 
-Example: `event <description> /from <start> /to <end>`
-
-```
-event project meeting /from Mon 2pm /to Mon 4pm
-```
+Example: `event <description> /from <date-time> /to <date-time>`
 
 ```
-I've added the task [[E][ ] project meeting (FROM: Mon 2pm; TO: Mon 4pm)] to your task list
+event project meeting /from 2024-03-11 1400 /to 2024-03-11 1600
 ```
+
+```
+I've added the task [[E][ ] project meeting (from: Mar 11 2024, 2:00pm; to: Mar 11 2024, 4:00pm)] to your task list
+```
+
+### Date-time format
+
+A `<date-time>` (deadline's `/by`, event's `/from` and `/to`) must be:
+
+- a date, with `-` or `/` as the separator: `yyyy-MM-dd` or `yyyy/MM/dd`
+- optionally followed by a time, either `HHmm` or `HH:mm` (24-hour)
+
+If no time is given, it defaults to **23:59** that day. For example, all of
+these are accepted:
+
+```
+2019-10-15 1800
+2019-10-15 18:00
+2019/10/15 1800
+2019/10/15 18:00
+2019-10-15          (defaults to 2019-10-15 23:59)
+2019/10/15          (defaults to 2019/10/15 23:59)
+```
+
+Anything else (e.g. `Sunday`, `next week`) is rejected with an error.
 
 ## Listing all tasks
 
@@ -66,8 +87,8 @@ Example: `list`
 
 ```
 1. [T][ ] borrow book
-2. [D][ ] return book (by: Sunday)
-3. [E][ ] project meeting (FROM: Mon 2pm; TO: Mon 4pm)
+2. [D][ ] return book (by: Oct 15 2019, 6:00pm)
+3. [E][ ] project meeting (from: Mar 11 2024, 2:00pm; to: Mar 11 2024, 4:00pm)
 ```
 
 If there are no tasks yet, Nia prints `Nothing here...` instead.

@@ -113,3 +113,35 @@ string source restores one reason to change per class, matching the InputReader/
 Parser/Processor/Printer split. The composition logic (which lines, in what order,
 wrapped in what bars) is orchestration, not content or mechanics, so it lives in
 Nia.java as small helpers rather than being pushed back into either class.
+
+6. Deadline/Event dates: String -> LocalDateTime (implemented)
+
+Changed FROM Deadline.by and Event.from/to being unvalidated Strings, accepted
+and stored verbatim from raw user input all the way to the save file, TO:
+- Parser gained parseDateTime/formatCanonical/parseCanonical/formatDisplay as
+  new static methods (alongside the existing parseAndValidateTaskIndex).
+  parseDeadline/parseEvent now validate the "/by"/"/from"/"/to" substring
+  against every accepted format (yyyy-MM-dd or yyyy/MM/dd, optionally
+  followed by HHmm or HH:mm; a bare date defaults its time to 23:59) and
+  throw InvalidDateTimeException if none match.
+- Deadline.by and Event.from/to are now LocalDateTime. toString() calls
+  Parser.formatDisplay for a friendly "Oct 15 2019, 6:00pm" style;
+  toSaveFormat() calls Parser.formatCanonical for one fixed, lossless
+  save-file pattern ("yyyy-MM-dd HHmm").
+- Processor and Storage both convert the canonical string back to
+  LocalDateTime via Parser.parseCanonical before constructing a
+  Deadline/Event - Processor's is always valid (Parser already validated
+  it), Storage's may not be if the save file predates this change or was
+  hand-edited, so Storage's existing "skip corrupted line" catch clause
+  had to be extended with DateTimeParseException (it extends
+  DateTimeException -> RuntimeException directly, not
+  IllegalArgumentException as originally assumed - caught here as a
+  genuine bug during manual testing, not just a hypothetical).
+
+Reason: an unvalidated String let any text through as a "date" (typos,
+free text, ambiguous formats) with no way to compare or sort tasks by
+time later. Putting the parsing/formatting in Parser rather than a new
+class matches how parseAndValidateTaskIndex already lives there as a
+shared helper beyond the main parse() entry point - Deadline/Event and
+Storage call back into Parser for it rather than duplicating
+DateTimeFormatter patterns in three more places.
