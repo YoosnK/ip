@@ -109,8 +109,13 @@ public class Parser {
         return new String[]{command, rest};
     }
 
-    /** Splits `rest` on "/by" into description and by-fields; throws if either comes back blank. */
-    private static String[] parseDeadline(String command, String rest) throws MissingDeadlineFieldsException {
+    /**
+     * Splits `rest` on "/by" into description and by-fields; throws if either comes
+     * back blank, or if by isn't a date-time in any accepted format. The returned by
+     * is always in Parser's canonical format, so every later stage (Processor, Task,
+     * Storage) can trust it's already valid instead of re-validating.
+     */
+    private static String[] parseDeadline(String command, String rest) throws NiaParserException {
         int byIndex = rest.indexOf("/by");
         String description = byIndex == -1 ? rest.trim() : rest.substring(0, byIndex).trim();
         String by = byIndex == -1 ? "" : rest.substring(byIndex + "/by".length()).trim();
@@ -118,11 +123,16 @@ public class Parser {
         if (description.isEmpty() || by.isEmpty()) {
             throw new MissingDeadlineFieldsException();
         }
-        return new String[]{command, description, by};
+        String canonicalBy = formatCanonical(parseDateTime(by));
+        return new String[]{command, description, canonicalBy};
     }
 
-    /** Splits `rest` on "/from" and "/to" into description, from, and to; throws if any comes back blank. */
-    private static String[] parseEvent(String command, String rest) throws MissingEventFieldsException {
+    /**
+     * Splits `rest` on "/from" and "/to" into description, from, and to; throws if any
+     * comes back blank, or if from/to isn't a date-time in any accepted format. Both
+     * are returned in Parser's canonical format, for the same reason as parseDeadline's by.
+     */
+    private static String[] parseEvent(String command, String rest) throws NiaParserException {
         int fromIndex = rest.indexOf("/from");
         int toIndex = rest.indexOf("/to");
 
@@ -139,7 +149,9 @@ public class Parser {
         if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
             throw new MissingEventFieldsException();
         }
-        return new String[]{command, description, from, to};
+        String canonicalFrom = formatCanonical(parseDateTime(from));
+        String canonicalTo = formatCanonical(parseDateTime(to));
+        return new String[]{command, description, canonicalFrom, canonicalTo};
     }
 
     /**
