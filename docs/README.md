@@ -16,11 +16,27 @@ Hi, my name's Nia.
 How can I help you?
 ```
 
+## Getting help
+
+Prints a quick-reference summary of every command.
+
+Example: `help`
+
+## Exiting
+
+Ends the program.
+
+Example: `bye`
+
+Alias: `close`, `exit`, `quit`
+
 ## Adding a todo
 
 Adds a task with just a description - no date/time attached.
 
 Example: `todo <description>`
+
+Alias: `td`
 
 ```
 todo borrow book
@@ -35,6 +51,8 @@ I've added the task [[T][ ] borrow book] to your task list
 Adds a task that needs to be done by a specific date and time.
 
 Example: `deadline <description> /by <date-time>`
+
+Alias: `dl`
 
 ```
 deadline return book /by 2019-10-15 1800
@@ -84,6 +102,8 @@ Anything else (e.g. `Sunday`, `next week`) is rejected with an error.
 Shows every task currently tracked, numbered from 1.
 
 Example: `list`
+
+Alias: `ls`
 
 ```
 1. [T][ ] borrow book
@@ -138,6 +158,8 @@ Removes a task by its number in `list`.
 
 Example: `delete <task number>`
 
+Alias: `d`
+
 ```
 delete 1
 ```
@@ -170,26 +192,18 @@ unmark 1
 Marked 1 as not done
 ```
 
-## Getting help
+## Quick reference
 
-Prints a quick-reference summary of every command.
-
-Example: `help`
-
-## Exiting
-
-Ends the program.
-
-Example: `bye`
-
-## Command aliases
-
-A few shorter or alternate spellings work in place of the full command word:
-
-| Alias | Canonical command |
-|---|---|
-| `close`, `exit`, `quit` | `bye` |
-| `td` | `todo` |
-| `dl` | `deadline` |
-| `ls` | `list` |
-| `d` | `delete` |
+| Task | Command | Example |
+|---|---|---|
+| Get help | `help` | `help` |
+| Add a todo | `todo <description>` | `todo borrow book` |
+| Add a deadline | `deadline <description> /by <date-time>` | `deadline return book /by 2019-10-15 1800` |
+| Add an event | `event <description> /from <date-time> /to <date-time>` | `event project meeting /from 2024-03-11 1400 /to 2024-03-11 1600` |
+| List all tasks | `list` | `list` |
+| Filter the list | `list <filter>` | `list t` |
+| Find tasks | `find <keyword>` | `find book` |
+| Delete a task | `delete <task number>` | `delete 1` |
+| Mark a task done | `mark <task number>` | `mark 1` |
+| Unmark a task | `unmark <task number>` | `unmark 1` |
+| Exit | `bye` | `bye` |
