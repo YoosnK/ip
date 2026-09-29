@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import nia.exceptions.EmptyFindKeywordException;
 import nia.exceptions.EmptyTodoDescriptionException;
 import nia.exceptions.IncorrectTaskIndexArgumentCountException;
 import nia.exceptions.InvalidDateTimeException;
@@ -97,6 +98,8 @@ public class Parser {
                 return parseEvent(command, rest);
             case "list":
                 return parseList(command, rest);
+            case "find":
+                return parseFind(command, rest);
             default:
                 String[] words = trimmed.split("\\s+");
                 words[0] = command;
@@ -187,6 +190,14 @@ public class Parser {
             default:
                 throw new UnknownListFilterException(filterToken);
         }
+    }
+
+    /** Rejects a blank keyword rather than letting an empty find match everything. */
+    private static String[] parseFind(String command, String rest) throws EmptyFindKeywordException {
+        if (rest.isEmpty()) {
+            throw new EmptyFindKeywordException();
+        }
+        return new String[]{command, rest};
     }
 
     /**
