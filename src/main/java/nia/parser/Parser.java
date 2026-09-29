@@ -5,11 +5,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.List;
+import java.util.Optional;
 import nia.exceptions.EmptyFindKeywordException;
 import nia.exceptions.EmptyTodoDescriptionException;
 import nia.exceptions.IncorrectTaskIndexArgumentCountException;
 import nia.exceptions.InvalidDateTimeException;
+import nia.exceptions.InvalidDateValueException;
 import nia.exceptions.InvalidTaskIndexException;
 import nia.exceptions.MissingDeadlineFieldsException;
 import nia.exceptions.MissingEventFieldsException;
@@ -50,18 +53,23 @@ public class Parser {
     /** Time assumed when the user gives a date with no time component. */
     private static final LocalTime DEFAULT_TIME = LocalTime.of(23, 59);
 
-    /** Date-time formats accepted from user input: "-" or "/" date separator, "HHmm" or "HH:mm" time. */
+    /**
+     * Date-time formats accepted from user input: "-" or "/" date separator, "HHmm" or "HH:mm" time.
+     * STRICT resolution (and "uuuu" rather than "yyyy" for the year, which STRICT needs to resolve
+     * unambiguously) rejects calendar-impossible dates like Feb 30 instead of SMART's default behavior
+     * of silently clamping them to Feb 28.
+     */
     private static final List<DateTimeFormatter> DATE_TIME_FORMATS = List.of(
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
-            DateTimeFormatter.ofPattern("yyyy/MM/dd HHmm"),
-            DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+            DateTimeFormatter.ofPattern("uuuu-MM-dd HHmm").withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm").withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("uuuu/MM/dd HHmm").withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("uuuu/MM/dd HH:mm").withResolverStyle(ResolverStyle.STRICT)
     );
 
-    /** Date-only formats accepted from user input; time defaults to DEFAULT_TIME. */
+    /** Date-only formats accepted from user input; time defaults to DEFAULT_TIME. Same STRICT reasoning as above. */
     private static final List<DateTimeFormatter> DATE_ONLY_FORMATS = List.of(
-            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
-            DateTimeFormatter.ofPattern("yyyy/MM/dd")
+            DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("uuuu/MM/dd").withResolverStyle(ResolverStyle.STRICT)
     );
 
     /**
@@ -232,23 +240,46 @@ public class Parser {
      * A date given with no time component defaults to 23:59 that day. Shared by
      * parseDeadline/parseEvent, whose "/by"/"/from"/"/to" fields all accept the
      * same formats.
+     * If every format fails, but at least one failure was a value out of range
+     * within an otherwise correctly-shaped input (e.g. month 30, or Feb 30 - a
+     * day that doesn't exist in that month), that's reported as InvalidDateValueException
+     * instead of the more generic "wrong format" InvalidDateTimeException, since
+     * the user got the shape right and just needs to fix a specific value.
      */
-    public static LocalDateTime parseDateTime(String raw) throws InvalidDateTimeException {
+    public static LocalDateTime parseDateTime(String raw) throws InvalidDateTimeException, InvalidDateValueException {
+        String invalidValueReason = null;
         for (DateTimeFormatter format : DATE_TIME_FORMATS) {
             try {
                 return LocalDateTime.parse(raw, format);
-            } catch (DateTimeParseException ignored) {
-                // Not this format - try the next one.
+            } catch (DateTimeParseException e) {
+                invalidValueReason = invalidValueReason(e).orElse(invalidValueReason);
             }
         }
         for (DateTimeFormatter format : DATE_ONLY_FORMATS) {
             try {
                 return LocalDate.parse(raw, format).atTime(DEFAULT_TIME);
-            } catch (DateTimeParseException ignored) {
-                // Not this format - try the next one.
+            } catch (DateTimeParseException e) {
+                invalidValueReason = invalidValueReason(e).orElse(invalidValueReason);
             }
         }
+        if (invalidValueReason != null) {
+            throw new InvalidDateValueException(raw, invalidValueReason);
+        }
         throw new InvalidDateTimeException(raw);
+    }
+
+    /**
+     * Distinguishes a value out of range within an otherwise correctly-shaped input (e.g. month 30,
+     * or Feb 30 under STRICT resolution) from a plain shape mismatch (e.g. "Sunday", or a missing
+     * digit) - java.time reports the former with "Invalid value for" or "Invalid date" in its
+     * message, and the latter as "could not be parsed at index N".
+     */
+    private static Optional<String> invalidValueReason(DateTimeParseException e) {
+        String message = e.getMessage();
+        if (message != null && (message.contains("Invalid value for") || message.contains("Invalid date"))) {
+            return Optional.of(message.substring(message.indexOf(':') + 2));
+        }
+        return Optional.empty();
     }
 
     /** Formats `dateTime` the way Nia's save file persists it - lossless, machine-parseable. */
