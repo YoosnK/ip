@@ -27,6 +27,7 @@ public class TaskJsonAdapter implements JsonSerializer<Task>, JsonDeserializer<T
     private static final String TYPE_DEADLINE = "deadline";
     private static final String TYPE_EVENT = "event";
 
+    /** Serializes src to a JSON object tagged with its concrete type ("todo"/"deadline"/"event"). */
     @Override
     public JsonElement serialize(Task src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject json = new JsonObject();
@@ -46,6 +47,7 @@ public class TaskJsonAdapter implements JsonSerializer<Task>, JsonDeserializer<T
         return json;
     }
 
+    /** Deserializes json back into the concrete Task subclass its "type" field names. */
     @Override
     public Task deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
             throws JsonParseException {

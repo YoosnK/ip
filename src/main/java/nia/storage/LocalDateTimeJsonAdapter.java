@@ -17,11 +17,13 @@ import java.time.LocalDateTime;
  * idiomatic representation for JSON, and it needs no custom pattern.
  */
 public class LocalDateTimeJsonAdapter implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
+    /** Serializes src to its ISO-8601 string representation. */
     @Override
     public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
         return new JsonPrimitive(src.toString());
     }
 
+    /** Deserializes json's ISO-8601 string back into a LocalDateTime. */
     @Override
     public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
             throws JsonParseException {
