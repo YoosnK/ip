@@ -95,7 +95,9 @@ these are accepted:
 2019/10/15          (defaults to 2019/10/15 23:59)
 ```
 
-Anything else (e.g. `Sunday`, `next week`) is rejected with an error.
+Anything else (e.g. `Sunday`, `next week`) is rejected with an error, and so is
+a value that fits the shape but doesn't exist as a real date, e.g. `2026-02-30`
+(February has no 30th) or `2026-13-01` (there's no month 13).
 
 ## Listing all tasks
 
