@@ -1,7 +1,14 @@
 package nia.parser;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 import nia.exceptions.EmptyTodoDescriptionException;
 import nia.exceptions.IncorrectTaskIndexArgumentCountException;
+import nia.exceptions.InvalidDateTimeException;
 import nia.exceptions.InvalidTaskIndexException;
 import nia.exceptions.MissingDeadlineFieldsException;
 import nia.exceptions.MissingEventFieldsException;
@@ -30,6 +37,29 @@ public class Parser {
             "dl", "deadline",
             "ls", "list",
             "d", "delete"
+    );
+
+    /** The one format Nia's save file uses - unambiguous, always includes a time. */
+    private static final DateTimeFormatter CANONICAL_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
+
+    /** Friendly display format for task listings, e.g. "Oct 15 2019, 6:00pm". */
+    private static final DateTimeFormatter DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("MMM d yyyy, h:mma");
+
+    /** Time assumed when the user gives a date with no time component. */
+    private static final LocalTime DEFAULT_TIME = LocalTime.of(23, 59);
+
+    /** Date-time formats accepted from user input: "-" or "/" date separator, "HHmm" or "HH:mm" time. */
+    private static final List<DateTimeFormatter> DATE_TIME_FORMATS = List.of(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd HHmm"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+    );
+
+    /** Date-only formats accepted from user input; time defaults to DEFAULT_TIME. */
+    private static final List<DateTimeFormatter> DATE_ONLY_FORMATS = List.of(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd")
     );
 
     /**
@@ -133,5 +163,48 @@ public class Parser {
             throw new InvalidTaskIndexException(taskIndex, taskList.getSize());
         }
         return taskIndex;
+    }
+
+    /**
+     * Parses `raw` (already trimmed) against every accepted date-time format in
+     * turn - "-" or "/" as the date separator, "HHmm" or "HH:mm" as the time.
+     * A date given with no time component defaults to 23:59 that day. Shared by
+     * parseDeadline/parseEvent, whose "/by"/"/from"/"/to" fields all accept the
+     * same formats.
+     */
+    public static LocalDateTime parseDateTime(String raw) throws InvalidDateTimeException {
+        for (DateTimeFormatter format : DATE_TIME_FORMATS) {
+            try {
+                return LocalDateTime.parse(raw, format);
+            } catch (DateTimeParseException ignored) {
+                // Not this format - try the next one.
+            }
+        }
+        for (DateTimeFormatter format : DATE_ONLY_FORMATS) {
+            try {
+                return LocalDate.parse(raw, format).atTime(DEFAULT_TIME);
+            } catch (DateTimeParseException ignored) {
+                // Not this format - try the next one.
+            }
+        }
+        throw new InvalidDateTimeException(raw);
+    }
+
+    /** Formats `dateTime` the way Nia's save file persists it - lossless, machine-parseable. */
+    public static String formatCanonical(LocalDateTime dateTime) {
+        return dateTime.format(CANONICAL_FORMATTER);
+    }
+
+    /** Parses a string that's already in the save file's canonical format back into a LocalDateTime. */
+    public static LocalDateTime parseCanonical(String canonical) {
+        return LocalDateTime.parse(canonical, CANONICAL_FORMATTER);
+    }
+
+    /** Formats `dateTime` for the user to read, e.g. "Oct 15 2019, 6:00pm". */
+    public static String formatDisplay(LocalDateTime dateTime) {
+        // DateTimeFormatter's "a" pattern renders AM/PM in uppercase regardless of
+        // case in the pattern string itself, so lowercase it afterward to match style.
+        String formatted = dateTime.format(DISPLAY_FORMATTER);
+        return formatted.replace("AM", "am").replace("PM", "pm");
     }
 }
